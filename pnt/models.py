@@ -60,6 +60,8 @@ class CaseHistory(models.Model):
 
     treatements = models.ManyToManyField('records.CategoricalValue', through='Consultant', related_name="rr")
 
+    family_diseases = models.ManyToManyField('records.CategoricalValue', through='FamilyDisease', related_name="rr")
+
     history = HistoricalRecords()
 
     def __unicode__(self):
@@ -101,7 +103,12 @@ class OtherChemicals(models.Model):
     
 class FamilyDisease(models.Model):
     casehistory = models.ForeignKey('CaseHistory')
-    family_disease = models.ForeignKey('records.CategoricalValue')
+    familydisease = models.ForeignKey('records.CategoricalValue')
+    father_age = models.IntegerField(verbose_name="Wiek ojca, jeżeli chorował", null=True, blank=True)
+    mother_age = models.IntegerField(verbose_name="Wiek matki, jeżeli chorowała", null=True, blank=True)
+    brother_age = models.IntegerField(verbose_name="Wiek brata, jeżeli chorował", null=True, blank=True)
+    sister_age = models.IntegerField(verbose_name="Wiek siostry, jeżeli chorowała", null=True, blank=True)
+    
 
 class LifeStyle(models.Model):
     patient = models.ForeignKey('Patient')
