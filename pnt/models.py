@@ -42,9 +42,23 @@ class Address(models.Model):
         verbose_name = "Adres"
         verbose_name_plural = "Adresy"
 
+
+class Disease(models.Model):
+    casehistory = models.ForeignKey('CaseHistory')
+    disease = models.ForeignKey('records.CategoricalValue')
+    note = models.TextField(blank=True)
+
+class Consultant(models.Model):
+    casehistory = models.ForeignKey('CaseHistory')
+    consultant = models.ForeignKey('records.CategoricalValue')
+
 class CaseHistory(models.Model):
     patient = models.ForeignKey('Patient')
     diagnosis_year = models.IntegerField()
+
+    diseases = models.ManyToManyField('records.CategoricalValue', through=Disease)
+
+    treatements = models.ManyToManyField('records.CategoricalValue', through='Consultant', related_name="rr")
 
     history = HistoricalRecords()
 
@@ -76,10 +90,6 @@ class HipotensionChemicals(models.Model):
         verbose_name = "Lek hipotensyjny"
         verbose_name_plural = "Lek hipotensyjny"
 
-class Disease(models.Model):
-    casehistory = models.ForeignKey('CaseHistory')
-    disease = models.ForeignKey('records.CategoricalValue')
-    note = models.TextField()
 
 class OtherChemicals(models.Model):
     casehistory = models.ForeignKey('CaseHistory')
@@ -88,9 +98,6 @@ class OtherChemicals(models.Model):
     midday_dose = models.CharField(max_length=4)
     evening_dose = models.CharField(max_length=4)
 
-class Treatment(models.Model):
-    casehistory = models.ForeignKey('CaseHistory')
-    consultant = models.ForeignKey('records.CategoricalValue')
     
 class FamilyDisease(models.Model):
     casehistory = models.ForeignKey('CaseHistory')
