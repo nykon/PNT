@@ -58,9 +58,9 @@ class CaseHistory(models.Model):
 
     diseases = models.ManyToManyField('records.CategoricalValue', through=Disease)
 
-    treatements = models.ManyToManyField('records.CategoricalValue', through='Consultant', related_name="rr")
+    treatements = models.ManyToManyField('records.CategoricalValue', through='Consultant', related_name="casehistory_by_treatements")
 
-    family_diseases = models.ManyToManyField('records.CategoricalValue', through='FamilyDisease', related_name="rr")
+    family_diseases = models.ManyToManyField('records.CategoricalValue', through='FamilyDisease', related_name="casehistory_by_family_diseases")
 
     history = HistoricalRecords()
 
