@@ -103,9 +103,21 @@ class LatestBP(models.Model):
         verbose_name = "Ostatnie zapisy BP"
         verbose_name_plural = "Ostatnie zapisy BP"
 
-class HipotensionChemicals(models.Model):
+
+class ChemicalInternationalType(models.Model):
+    name = models.CharField(max_length=255, verbose_name="Nazwa")
+
+class PharmaGroup(models.Model):
+    name = models.CharField(max_length=255, verbose_name="Nazwa")
+
+class HipotensionChemical(models.Model):
+    name = models.CharField(max_length=255, verbose_name="Nazwa")
+    international_name = models.ForeignKey('ChemicalInternationalType', verbose_name="Nazwa międzynarodowa")
+    pharma_group = models.ForeignKey('PharmaGroup', verbose_name="Grupa farmakoterapeutyczna")
+        
+class HipotensionChemicalTaken(models.Model):
     casehistory = models.ForeignKey('CaseHistory')
-    hipotension_chemical = models.ForeignKey('records.CategoricalValue', verbose_name="Rodzaj leku", limit_choices_to={'group__name': 'hipotension_chemical'})
+    hipotension_chemical = models.ForeignKey('HipotensionChemical', verbose_name="Rodzaj leku")
     morning_dose = models.CharField(max_length=4, verbose_name="Dawka poranna")
     midday_dose = models.CharField(max_length=4, verbose_name="Dawka południowa")
     evening_dose = models.CharField(max_length=4, verbose_name="Dawka wieczorna")
@@ -116,7 +128,7 @@ class HipotensionChemicals(models.Model):
         verbose_name = "Lek hipotensyjny"
         verbose_name_plural = "Lek hipotensyjny"
 
-class OtherChemicals(models.Model):
+class OtherChemical(models.Model):
     casehistory = models.ForeignKey('CaseHistory')
     other_chemical = models.ForeignKey('records.CategoricalValue', limit_choices_to={'group__name': 'other_chemical'})
     morning_dose = models.CharField(max_length=4)
