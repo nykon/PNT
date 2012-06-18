@@ -125,7 +125,7 @@ class HipotensionChemical(models.Model):
     pharma_group = models.ForeignKey('PharmaGroup', verbose_name="Grupa farmakoterapeutyczna")
         
     def __unicode__(self):
-        return u"%s (%s, %s)" % (self.name, self.intenational_name.name, self.pharma_group.name)
+        return u"%s (%s, %s)" % (self.name, self.international_name.name, self.pharma_group.name)
 
     class Meta:
         unique_together = (('name', 'pharma_group',),)
