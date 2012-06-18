@@ -105,16 +105,33 @@ class LatestBP(models.Model):
 
 
 class ChemicalInternationalType(models.Model):
-    name = models.CharField(max_length=255, verbose_name="Nazwa")
+    name = models.CharField(max_length=255, verbose_name="Nazwa", unique=True)
+
+    class Meta:
+        verbose_name = "Międzynarodowa nazwa leku"
+        verbose_name_plural = "Międzynarodowe nazwy leków"
 
 class PharmaGroup(models.Model):
-    name = models.CharField(max_length=255, verbose_name="Nazwa")
+    name = models.CharField(max_length=255, verbose_name="Nazwa", unique=True)
+
+    class Meta:
+        verbose_name = "Grupa farmakoterapeutyczna"
+        verbose_name_plural = "Grupy farmakoterapeutyczne"
+
 
 class HipotensionChemical(models.Model):
-    name = models.CharField(max_length=255, verbose_name="Nazwa")
+    name = models.CharField(max_length=255, verbose_name="Nazwa", unique=True)
     international_name = models.ForeignKey('ChemicalInternationalType', verbose_name="Nazwa międzynarodowa")
     pharma_group = models.ForeignKey('PharmaGroup', verbose_name="Grupa farmakoterapeutyczna")
         
+    def __unicode__(self):
+        return u"%s (%s, %s)" % (self.name, self.intenational_name.name, self.pharma_group.name)
+
+    class Meta:
+        unique_together = (('name', 'pharma_group',),)
+        verbose_name = "Lek hipotensyjny"
+        verbose_name_plural = "Lek hipotensyjny"
+    
 class HipotensionChemicalTaken(models.Model):
     casehistory = models.ForeignKey('CaseHistory')
     hipotension_chemical = models.ForeignKey('HipotensionChemical', verbose_name="Rodzaj leku")
@@ -125,8 +142,8 @@ class HipotensionChemicalTaken(models.Model):
 
     class Meta:
         unique_together = (('casehistory', 'hipotension_chemical',),)
-        verbose_name = "Lek hipotensyjny"
-        verbose_name_plural = "Lek hipotensyjny"
+        verbose_name = "Przyjmowany lek hipotensyjny"
+        verbose_name_plural = "Przyjmowany lek hipotensyjny"
 
 class OtherChemical(models.Model):
     casehistory = models.ForeignKey('CaseHistory')
