@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.db import models
 from synergy.contrib.history.models import HistoricalRecords
+import datetime
 
 def _default_unicode(obj):
     return "%s #%d" % (obj._meta.verbose_name, obj.id)
@@ -17,12 +18,18 @@ class Patient(models.Model):
     # pola, chyba, że podano limit_choices_to
     gender = models.ForeignKey('records.CategoricalValue', related_name="patients_by_gender", verbose_name="Płeć", limit_choices_to={'group__name': 'gender'})
     education = models.ForeignKey('records.CategoricalValue', related_name="patients_by_education", verbose_name="Wykształcenie", limit_choices_to={'group__name': 'education'})
-    occupation = models.ForeignKey('records.CategoricalValue', related_name="patients_by_occupation", verbose_name="Zawód wykonywany", limit_choices_to={'group__name': 'occupation'})
+    occupation = models.ForeignKey('records.CategoricalValue', related_name="patients_by_occupation", verbose_name="Status aktywności zawodowej", limit_choices_to={'group__name': 'occupation'})
     occupation_name = models.CharField(max_length=255, verbose_name="Nazwa zawodu", blank=True)
     history = HistoricalRecords()
 
     def __unicode__(self):
         return u"%s %s (%s)" % (self.first_name, self.last_name, self.pesel)
+
+    def get_birth_date(self):
+        return datetime.date(int('19%s' % self.pesel[:2]), int(self.pesel[2:4]), int(self.pesel[4:6]))
+    
+    def get_age(self):
+        return datetime.date.today().year - self.get_birth_date().year
 
     class Meta:
         verbose_name = "Pacjent"
@@ -71,12 +78,12 @@ class Consultant(models.Model):
         verbose_name_plural = "Rodzaje leczenia u specjalisty"
 
 class CaseHistory(models.Model):
-    patient = models.ForeignKey('Patient')
+    patient = models.ForeignKey('Patient', verbose_name="Pacjent")
     diagnosis_year = models.IntegerField(verbose_name="Rok diagnozy")
     already_hospitalized = models.BooleanField(verbose_name="Hospitalizowany w tutejszej klinice?")
 
     diseases = models.ManyToManyField('records.CategoricalValue', through=Disease, verbose_name="Choroby współistniejące", related_name="casehistory_by_disease")
-    general_diseases = models.ManyToManyField('records.CategoricalValue', through=GeneralDisease, verbose_name="Choroby współistniejące opisowo", related_name="casehistory_by_general_disease")
+    general_disepases = models.ManyToManyField('records.CategoricalValue', through=GeneralDisease, verbose_name="Choroby złożone", related_name="casehistory_by_general_disease")
 
     treatements = models.ManyToManyField('records.CategoricalValue', through='Consultant', related_name="casehistory_by_treatements", verbose_name="Leczenie u specjalisty")
 
@@ -89,8 +96,8 @@ class CaseHistory(models.Model):
 
 class LatestBP(models.Model):
     casehistory = models.ForeignKey('CaseHistory')
-    sbp = models.FloatField(verbose_name="Ciśnienie rozkurczowe")
-    dbp = models.FloatField(verbose_name="Ciśnienie skurczowe")
+    sbp = models.FloatField(verbose_name="Ciśnienie skurczowe")
+    dbp = models.FloatField(verbose_name="Ciśnienie rozkurczowe")
 
     class Meta:
         verbose_name = "Ostatnie zapisy BP"
@@ -102,7 +109,7 @@ class HipotensionChemicals(models.Model):
     morning_dose = models.CharField(max_length=4, verbose_name="Dawka poranna")
     midday_dose = models.CharField(max_length=4, verbose_name="Dawka południowa")
     evening_dose = models.CharField(max_length=4, verbose_name="Dawka wieczorna")
-    taken_less_then_week = models.BooleanField(verbose_name="Czy przyjmuje krócej niż tydzień")
+    taken_less_then_week = models.BooleanField(verbose_name="Przyjmuje krócej niż tydzień")
 
     class Meta:
         unique_together = (('casehistory', 'hipotension_chemical',),)
@@ -134,7 +141,7 @@ class FamilyDisease(models.Model):
         verbose_name_plural = "Choroby w rodzinie"
 
 class LifeStyle(models.Model):
-    patient = models.ForeignKey('Patient')
+    patient = models.ForeignKey('Patient', verbose_name="Pacjent")
 
     cigarets_start_age = models.IntegerField(verbose_name="W jakim wieku zaczął palić?", null=True)
     cigarets_quit_age = models.IntegerField(verbose_name="W jakim wieku rzucił", null=True)
@@ -205,7 +212,7 @@ class MealType(models.Model):
     times_per_week = models.IntegerField(verbose_name="Ile razy w tygodniu?")
 
 class Meal(models.Model):
-    patient = models.ForeignKey('Patient')
+    patient = models.ForeignKey('Patient', verbose_name="Pacjent")
     
     ready_meal_count = models.IntegerField(verbose_name="Jak często kupuje Pani/Pan gotowe posiłki?")
     ready_meal_frequency = models.ForeignKey('records.CategoricalValue', related_name="meal_by_meal_usage_frequency", verbose_name="Tydzień/miesiąc/rok", limit_choices_to={'group__name': 'ready_meal_frequency'})
@@ -232,7 +239,7 @@ class Meal(models.Model):
         verbose_name_plural = u"Posiłki"
 
 class Drink(models.Model):
-    patient = models.ForeignKey('Patient')
+    patient = models.ForeignKey('Patient', verbose_name="Pacjent")
     
     water_volume = models.ForeignKey('records.CategoricalValue', related_name="drinks_by_water_volume", verbose_name="Ile szklanek wody dziennie wypija? ")
     sweet_dring_daily = models.IntegerField(verbose_name="Ile szklanek słodzonych napojów gazowanych wypija dziennie?")
@@ -253,7 +260,7 @@ class Drink(models.Model):
         verbose_name_plural = "Napoje"
 
 class PhysicalActivity(models.Model):
-    patient = models.ForeignKey('Patient')
+    patient = models.ForeignKey('Patient', verbose_name="Pacjent")
 
     work_mode = models.ForeignKey('records.CategoricalValue', verbose_name="Jaki tryb pracy Pani/Pan wykonuje?")
     # multiple
@@ -328,7 +335,7 @@ class ApnoeaIdentification(models.Model):
         verbose_name_plural = u"Czynniki identyfikujące bezdech"
 
 class LifeQuality(models.Model):
-    patient = models.ForeignKey('Patient')
+    patient = models.ForeignKey('Patient', verbose_name="Pacjent")
     alergen_chemical = models.TextField(verbose_name="Jeżeli występują alergie na leki, podać jakie i dla jakich leków", blank=True)
     factors = models.ManyToManyField('records.CategoricalValue', through='LifeQualityFactor', verbose_name="Czynniki jakościujące")
 
