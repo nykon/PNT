@@ -131,6 +131,7 @@ class HipotensionChemical(models.Model):
         unique_together = (('name', 'pharma_group',),)
         verbose_name = "Lek hipotensyjny"
         verbose_name_plural = "Lek hipotensyjny"
+        ordering = ('name', 'international_name__name')
     
 class HipotensionChemicalTaken(models.Model):
     casehistory = models.ForeignKey('CaseHistory')
