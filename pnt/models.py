@@ -385,6 +385,78 @@ class LifeQualityFactor(models.Model):
         verbose_name = u"Czynnik jakości życia"
         verbose_name_plural = u"Czynniki jakości życia"
 
+
+class EtiologySymptom(models.Model):
+    etiology = models.ForeignKey('Etiology')
+    etiologysymptom = models.ForeignKey('records.CategoricalValue')
+    
+    class Meta:
+        verbose_name = u"Objaw sugerujący etiologię wtórną NT"
+        verbose_name_plural = u"Objawy sugerujące etiologię wtórną NT"
+
+    class Meta:
+        unique_together = (('etiology', 'etiologysymptom'),)
+
+
+class ExaminationResult(models.Model):
+    etiology = models.ForeignKey('Etiology')
+    examinationresult = models.ForeignKey('records.CategoricalValue', limit_choices_to={'group__name': 'examination_result'})
+
+    class Meta:
+        verbose_name = "Wynik badania przedmiotowego"
+        verbose_name_plural = "Wynika badań przedmiotowych"
+
+    class Meta:
+        unique_together = (('etiology', 'examinationresult'),)
+        verbose_name = u"Wynik badania przedmiotowego"
+        verbose_name_plural = u"Wyniki badań przedmiotowych"
+
+
+    
+class DerivativeEtiologyBackground(models.Model):
+    etiology = models.ForeignKey('Etiology')
+    derivativeetiologybackground = models.ForeignKey('records.CategoricalValue')
+    
+    STATE = (('a', 'Podejrzenie'), ('b', 'Diagnoza'))
+    state = models.CharField(max_length=1, choices=STATE, verbose_name="Status rozpoznania")
+
+    class Meta:
+        unique_together = (('etiology', 'derivativeetiologybackground'),)
+        verbose_name = u"Tło wtórnej etiologii"
+        verbose_name_plural = u"Tła wtórnej etiologii"
+
+
+class HypertensionChemicalRelation(models.Model):
+    etiology = models.ForeignKey('Etiology')
+    hypertensionchemicalrelation = models.ForeignKey('records.CategoricalValue')
+
+    class Meta:
+        unique_together = (('etiology', 'hypertensionchemicalrelation'),)
+
+        verbose_name = u"Związek leku/chemii z NT"
+        verbose_name_plural = u"Związki leków/chemii z NT"
+
+
+class Etiology(models.Model):
+    patient = models.ForeignKey('Patient')
+
+    ACTUAL = (('a', 'Pierwotna'), ('b', 'Wtórna'))
+    actual_etiology_value = models.CharField(max_length=1, choices=ACTUAL, verbose_name="Aktualna etiologia nadciśnienia")
+
+    nt_etiology_symptoms = models.ManyToManyField('records.CategoricalValue', through='EtiologySymptom', related_name="etiology_by_symptom", verbose_name = "Obecne objawy sugerujące etiologię wtórną NT")
+    examination_results = models.ManyToManyField('records.CategoricalValue', through='ExaminationResult', related_name="etiology_by_examination", verbose_name = "W badaniu przedmiotowym obecne")
+    derivative_etiology_backgrounds = models.ManyToManyField('records.CategoricalValue', through='DerivativeEtiologyBackground', related_name="etiology_by_derivatives", verbose_name = "Tło etiologi wtórnej")
+
+    derivative_etiology_backgrounds = models.ManyToManyField('records.CategoricalValue', through='DerivativeEtiologyBackground', related_name="etiology_by_derivatives", verbose_name = "Tło etiologi wtórnej")
+    
+    hypertension_chemicals = models.ManyToManyField('records.CategoricalValue', through='HypertensionChemicalRelation', related_name="etiology_by_chemicals", verbose_name="NT związane z lekami/środkami chemicznymi")
+
+
+    class Meta:
+        verbose_name = u"Etiologia nadciśnienia tętnicznego"
+        verbose_name_plural = u"Etiologia nadciśnienia tętnicznego"
+
+
 #class Antropometrics(models.Model):
 #    pass
 
