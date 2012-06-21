@@ -9,7 +9,7 @@ def _default_unicode(obj):
 class Patient(models.Model):
     first_name = models.CharField(max_length=255, verbose_name="Imię")
     last_name = models.CharField(max_length=255, verbose_name="Nazwisko")
-    pesel = models.CharField(max_length=11, verbose_name="Pesel")
+    pesel = models.CharField(max_length=11, verbose_name="Pesel", unique=True)
 
     phone = models.CharField(max_length=255, verbose_name="Telefon")
     email = models.EmailField(blank=True, verbose_name="E-mail")
@@ -148,10 +148,10 @@ class HipotensionChemicalTaken(models.Model):
 
 class OtherChemical(models.Model):
     casehistory = models.ForeignKey('CaseHistory')
-    other_chemical = models.ForeignKey('records.CategoricalValue', limit_choices_to={'group__name': 'other_chemical'})
-    morning_dose = models.CharField(max_length=4)
-    midday_dose = models.CharField(max_length=4)
-    evening_dose = models.CharField(max_length=4)
+    other_chemical = models.ForeignKey('records.CategoricalValue', limit_choices_to={'group__name': 'other_chemical'}, verbose_name="Nazwa leku")
+    morning_dose = models.CharField(max_length=4, verbose_name="Dawka poranna")
+    midday_dose = models.CharField(max_length=4, verbose_name="Dawka popołudniowa")
+    evening_dose = models.CharField(max_length=4, verbose_name="Dawka wieczorna")
 
     class Meta:
         unique_together = (('casehistory', 'other_chemical',),)
