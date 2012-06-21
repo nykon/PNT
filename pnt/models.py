@@ -173,18 +173,18 @@ class FamilyDisease(models.Model):
 class LifeStyle(models.Model):
     patient = models.ForeignKey('Patient', verbose_name="Pacjent")
 
-    cigarets_start_age = models.IntegerField(verbose_name="W jakim wieku zaczął palić?", null=True)
-    cigarets_quit_age = models.IntegerField(verbose_name="W jakim wieku rzucił", null=True)
-    cigarets_number = models.IntegerField(verbose_name="Liczba papierosów dziennie", null=True)
+    cigarets_start_age = models.IntegerField(verbose_name="Wiek rozpoczęcia palenia", null=True)
+    cigarets_quit_age = models.IntegerField(verbose_name="Wiek rzucenia palenia", null=True)
+    cigarets_number = models.IntegerField(verbose_name="Liczba pap. dziennie", null=True)
     work_passive_smoker = models.BooleanField(verbose_name="Bierny palacz w pracy?")
     home_passive_smoker = models.BooleanField(verbose_name="Bierny palacz w domu?")
 
-    alc_start_age = models.IntegerField(verbose_name="W jakim wieku zaczął pić alkohol?")
-    alc_quit_age = models.IntegerField(verbose_name="W jakim wieku przestał pić?")
+    alc_start_age = models.IntegerField(verbose_name="Wiek rozp. spożycia alkoholu?")
+    alc_quit_age = models.IntegerField(verbose_name="Wiek zakończenia spożycia alk.")
 
-    drugs_start_age = models.IntegerField(verbose_name="W jakim wieku zaczął brać narkotyki?")
-    drugs_quit_age = models.IntegerField(verbose_name="W jakim wieku przestał brać?")
-    drugs_taken = models.CharField(max_length=255, verbose_name="Jakie narkotyki przyjmował?")
+    drugs_start_age = models.IntegerField(verbose_name="Wieku rozp. przyjm. narkotyków?")
+    drugs_quit_age = models.IntegerField(verbose_name="Wiek zakończnia przyjm. narkot.")
+    drugs_taken = models.CharField(max_length=255, verbose_name="Przyjmowane narkotyki")
     
     stimulants = models.ManyToManyField('records.CategoricalValue', through='Stimulant', verbose_name="Spożycie używek", related_name="lifestyle_by_stimulants")
     contraceptives = models.ManyToManyField('records.CategoricalValue', through='Contraceptive', verbose_name="Leki antykoncepcyjne", related_name="lifestyle_by_contraceptive")
@@ -215,7 +215,7 @@ class Contraceptive(models.Model):
     lifestyle = models.ForeignKey('LifeStyle')
     contraceptive = models.ForeignKey('records.CategoricalValue', related_name="sexlifes_by_contraceptive", limit_choices_to={'group__name': 'contraceptive'})
     name = models.CharField(max_length=255, verbose_name="Nazwa leku")
-    how_long = models.IntegerField(verbose_name="Jak długo był przyjmowany (miesiące)?")
+    how_long = models.IntegerField(verbose_name="Liczba miesięcy stosowania")
 
     class Meta:
         unique_together = (('lifestyle', 'contraceptive'),)
@@ -227,8 +227,8 @@ class Stimulant(models.Model):
     FREQ = (('a', 'codziennie'), ('b', 'co tydzień'), ('c', 'co miesiąc'), ('d', 'co rok'))
     lifestyle = models.ForeignKey('LifeStyle')
     stimulant = models.ForeignKey('records.CategoricalValue', related_name="stimulant_by_stimulant", limit_choices_to={'group__name': 'stimulant'})
-    usage_frequency = models.CharField(max_length=1, choices=FREQ, verbose_name="Jak często spożywa?")
-    avg_volume = models.FloatField(verbose_name="Ile ml przeciętnie wypija za każdym razem?")
+    usage_frequency = models.CharField(max_length=1, choices=FREQ, verbose_name="Częstotliwość spożycia")
+    avg_volume = models.FloatField(verbose_name="Ilość ml przeciętnie wypijanych za każdym razem")
     
     class Meta:
         unique_together = (('lifestyle', 'stimulant',))
@@ -244,21 +244,21 @@ class MealType(models.Model):
 class Meal(models.Model):
     patient = models.ForeignKey('Patient', verbose_name="Pacjent")
     
-    ready_meal_count = models.IntegerField(verbose_name="Jak często kupuje Pani/Pan gotowe posiłki?")
-    ready_meal_frequency = models.ForeignKey('records.CategoricalValue', related_name="meal_by_meal_usage_frequency", verbose_name="Tydzień/miesiąc/rok", limit_choices_to={'group__name': 'ready_meal_frequency'})
+    ready_meal_count = models.IntegerField(verbose_name="Częstotliwość kupowania gotowych posiłków")
+    ready_meal_frequency = models.ForeignKey('records.CategoricalValue', related_name="meal_by_meal_usage_frequency", verbose_name="Jednostka częstości", limit_choices_to={'group__name': 'ready_meal_frequency'})
 
-    outdoor_meal_count = models.IntegerField(verbose_name="Jak często je Pani/Pan w restauracjach typu fast-food?")
-    outdoor_meal_frequency = models.ForeignKey('records.CategoricalValue', related_name="meal_by_outdoor_usage_frequency", verbose_name="Tydzień/miesiąc/rok", limit_choices_to={'group__name': 'outdoor_meal_frequency'})
+    outdoor_meal_count = models.IntegerField(verbose_name="Częstotliwość stołowania się w restauracjach typu fast-food?")
+    outdoor_meal_frequency = models.ForeignKey('records.CategoricalValue', related_name="meal_by_outdoor_usage_frequency", verbose_name="Jednostka częstości", limit_choices_to={'group__name': 'outdoor_meal_frequency'})
 
     meal_types = models.ManyToManyField('records.CategoricalValue', through='MealType', verbose_name="Rodzaj pożywienia")
-    dairy_type = models.CharField(max_length=255, verbose_name="Jaki typ nabiału najczęściej spożywa?")
+    dairy_type = models.CharField(max_length=255, verbose_name="Typ nabiału spożywany najczęściej")
 
-    meat_type = models.ForeignKey('records.CategoricalValue', related_name="meal_by_meat_type", verbose_name="Jaki typ mięsa najczęściej spożywa?")
+    meat_type = models.ForeignKey('records.CategoricalValue', related_name="meal_by_meat_type", verbose_name="Typ mięsa spożywany najczęściej")
 
-    oil_type_most_frequent = models.ForeignKey('records.CategoricalValue', related_name="meal_by_oil_type_most_frequent", verbose_name="Jakiego tłuszczu używa do przyrządzania potraw?", limit_choices_to={'group__name': 'oil_type_most_frequent'})
-    meal_type_most_frequent = models.ForeignKey('records.CategoricalValue', related_name="meal_by_meal_type_most_frequent", verbose_name="Jaki typ potraw najczęściej spożywa", limit_choices_to={'group__name': 'meal_type_most_frequent'})
-    bread_type_most_frequent = models.ForeignKey('records.CategoricalValue', related_name="meal_by_bread_type_most_frequent", verbose_name="Jaki typ pieczywa spożywa najczęściej?", limit_choices_to={'group__name': 'bread_type_most_frequent'})
-    butter_type_most_frequent = models.ForeignKey('records.CategoricalValue', related_name="meal_by_butter_type_most_frequent", verbose_name="Czym zazwyczaj smaruje pieczywo?",  limit_choices_to={'group__name': 'butter_type_most_frequent'})
+    oil_type_most_frequent = models.ForeignKey('records.CategoricalValue', related_name="meal_by_oil_type_most_frequent", verbose_name="Typ tłuszczu używany do przyrządzania potraw", limit_choices_to={'group__name': 'oil_type_most_frequent'})
+    meal_type_most_frequent = models.ForeignKey('records.CategoricalValue', related_name="meal_by_meal_type_most_frequent", verbose_name="Typ potrawy najczęściej spożywanej", limit_choices_to={'group__name': 'meal_type_most_frequent'})
+    bread_type_most_frequent = models.ForeignKey('records.CategoricalValue', related_name="meal_by_bread_type_most_frequent", verbose_name="Typ pieczywa najczęściej spożywanego", limit_choices_to={'group__name': 'bread_type_most_frequent'})
+    butter_type_most_frequent = models.ForeignKey('records.CategoricalValue', related_name="meal_by_butter_type_most_frequent", verbose_name="Rodzaj tłuszczu używanego  zazwyczaj do smarowania pieczywa",  limit_choices_to={'group__name': 'butter_type_most_frequent'})
     
 
     def __unicode__(self):
@@ -271,16 +271,16 @@ class Meal(models.Model):
 class Drink(models.Model):
     patient = models.ForeignKey('Patient', verbose_name="Pacjent")
     
-    water_volume = models.ForeignKey('records.CategoricalValue', related_name="drinks_by_water_volume", verbose_name="Ile szklanek wody dziennie wypija? ")
-    sweet_dring_daily = models.IntegerField(verbose_name="Ile szklanek słodzonych napojów gazowanych wypija dziennie?")
-    veg_fruit_dring_daily = models.IntegerField(verbose_name="Ile szklanek soków owocowo-warzywnych dziennie wypija?")
-    coffe_daily = models.IntegerField(verbose_name="Ile szklanek kawy dziennie wypija?")
-    tee_daily = models.IntegerField(verbose_name="Ile szklanek herbaty dziennie wypija?")
-    tee_type = models.ForeignKey('records.CategoricalValue', related_name="drinks_by_tee_type", verbose_name="Jaki rodzaj herbaty najczęściej pije?")
-    sugar_spoons = models.IntegerField(verbose_name="Iloma łyżeczkami cukru słodzi herbatę/kawę?")
+    water_volume = models.ForeignKey('records.CategoricalValue', related_name="drinks_by_water_volume", verbose_name="Liczba szklanek wypijanych dziennie")
+    sweet_dring_daily = models.IntegerField(verbose_name="Liczba szklanek słodzonych napojów gazowanych wypijanych dziennie")
+    veg_fruit_dring_daily = models.IntegerField(verbose_name="Liczba szklanek soków owocowo-warzywnych wypijanych dziennie")
+    coffe_daily = models.IntegerField(verbose_name="Liczba szklanek kawy wypijanych dziennie")
+    tee_daily = models.IntegerField(verbose_name="Liczba szklanek herbaty wypijanych dziennie")
+    tee_type = models.ForeignKey('records.CategoricalValue', related_name="drinks_by_tee_type", verbose_name="Najczęściej wypijany rodzaj herbaty")
+    sugar_spoons = models.IntegerField(verbose_name="Liczba łyżeczek cukru do  herbaty/kawy")
 
-    mainly_preservative_meal = models.BooleanField(verbose_name="Czy spożywa Pani/Pan głównie produkty konserwowe?")
-    extra_salt = models.BooleanField(verbose_name="Czy dosala Pani/Pan potrawy?")
+    mainly_preservative_meal = models.BooleanField(verbose_name="Spożywa głównie produkty konserwowe")
+    extra_salt = models.BooleanField(verbose_name="Dosala potrawy")
 
     def __unicode__(self):
         return _default_unicode(self)
@@ -292,19 +292,19 @@ class Drink(models.Model):
 class PhysicalActivity(models.Model):
     patient = models.ForeignKey('Patient', verbose_name="Pacjent")
 
-    work_mode = models.ForeignKey('records.CategoricalValue', verbose_name="Jaki tryb pracy Pani/Pan wykonuje?")
+    work_mode = models.ForeignKey('records.CategoricalValue', verbose_name="Tryb pracy")
     # multiple
     # movement_mode = models.ForeignKey('records.CategoricalValue')
     
-    daily_in_car = models.IntegerField(verbose_name="Ile minut dziennie spędza w samochodzie?")
-    daily_in_bike = models.IntegerField(verbose_name="Ile minut dziennie jeździ rowerem?")
-    daily_on_foot = models.IntegerField(verbose_name="Ile minut dziennie chodzi pieszo?")
+    daily_in_car = models.IntegerField(verbose_name="Liczba minut dziennie w  samochodzie?")
+    daily_in_bike = models.IntegerField(verbose_name="Liczba minut dizennie rowerem")
+    daily_on_foot = models.IntegerField(verbose_name="Liczba minut dziennie pieszo")
 
-    last_year_sport_months = models.IntegerField(verbose_name="Ile miesięcy w ciągu ostatniego roku uprawiał regularnie sport?")
-    last_year_sport_weeks = models.IntegerField(verbose_name="Ile razy w tygodniu uprawia sport?")
-    minutes_on_sport = models.IntegerField(verbose_name="Ile minut za każdym razem poświęca na uprawianie sportu?")
-    prefered_sport = models.CharField(max_length=255, verbose_name="Jaki sport uprawiał najbardziej regularnie w ciągu ostatniego roku?")
-    sport_activities = models.CharField(max_length=255, verbose_name="Jaki aktualnie wykonuje wysiłek fizyczny poza godzinami pracy? ")
+    last_year_sport_months = models.IntegerField(verbose_name="Liczba miesięcy w ciągu ostatniego roku regularnego sportu")
+    last_year_sport_weeks = models.IntegerField(verbose_name="Liczba razy w tygodniu gdy uprawia sport?")
+    minutes_on_sport = models.IntegerField(verbose_name="Liczba minut za każdym razem poświęcanych na uprawianie sportu?")
+    prefered_sport = models.CharField(max_length=255, verbose_name="Sport uprawiany najbardziej regularnie w ciągu ostatniego roku")
+    sport_activities = models.CharField(max_length=255, verbose_name="Aktualnie wykonywany wysiłek fizyczny poza godzinami pracy")
     
     def __unicode__(self):
         return _default_unicode(self)
@@ -342,9 +342,9 @@ class Apnoea(models.Model):
                   ('3', 'umiarkowaną (10-20 kg) = w oryginale to 20-40 funtów(?)'), 
                   ('4', 'znaczną (powyżej 20 kg) = w oryginale to > 40 funtów(?)'))    
 
-    snooring = models.CharField(max_length=1, choices=FREQ, verbose_name=u"Jak często zauważa Pan/Pani sam-a lub mówią o tym współmieszkańcy, że Pana/Pani chrapanie jest na tyle głośne, że przeszkadza im spać?")
-    sleap_apnoea = models.CharField(max_length=1, choices=FREQ, verbose_name=u"Jak często mówiono Panu/Pani, że ma Pan/Pani „przerwy w oddychaniu podczas snu?")
-    overweight = models.CharField(max_length=1, choices=OVERWEIGHT, verbose_name=u"Ile ma Pan/Pani kilogramów (w oryginale funtów) nadwagi?")
+    snooring = models.CharField(max_length=1, choices=FREQ, verbose_name=u"Jak często zauważa lub mówią o tym współmieszkańcy, że chrapanie jest na tyle głośne, że przeszkadza im spać?")
+    sleap_apnoea = models.CharField(max_length=1, choices=FREQ, verbose_name=u"Jak często mówiono że ma „przerwy w oddychaniu podczas snu?")
+    overweight = models.CharField(max_length=1, choices=OVERWEIGHT, verbose_name=u"Ile ma kilogramów (w oryginale funtów) nadwagi?")
     # D. Ile wynosi Pana/Pani wynik w skali Epworth?
     identifications = models.ManyToManyField('records.CategoricalValue', through='ApnoeaIdentification', verbose_name="Czynniki identyfikujące")
 
