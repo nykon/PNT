@@ -4,7 +4,7 @@ from synergy.contrib.history.models import HistoricalRecords
 import datetime
 
 def _default_unicode(obj):
-    return "%s #%d" % (obj._meta.verbose_name, obj.id)
+    return u"%s #%d" % (obj._meta.verbose_name, obj.id)
     
 class Patient(models.Model):
     first_name = models.CharField(max_length=255, verbose_name="Imię")
@@ -88,7 +88,7 @@ class CaseHistory(models.Model):
     treatements = models.ManyToManyField('records.CategoricalValue', through='Consultant', related_name="casehistory_by_treatements", verbose_name="Leczenie u specjalisty")
 
     def __unicode__(self):
-        return "Rok diagnozy: %s" % self.diagnosis_year
+        return u"Rok diagnozy: %s (%s)" % (self.diagnosis_year, self.patient)
 
     class Meta:
         verbose_name = "Historia choroby"
@@ -147,8 +147,8 @@ class HipotensionChemicalTaken(models.Model):
         verbose_name_plural = "Przyjmowany lek hipotensyjny"
 
 class OtherChemical(models.Model):
-    casehistory = models.ForeignKey('CaseHistory')
-    other_chemical = models.ForeignKey('records.CategoricalValue', limit_choices_to={'group__name': 'other_chemical'}, verbose_name="Nazwa leku")
+    casehistory = models.ForeignKey('CaseHistory', related_name="other_chemicals")
+    other_chemical = models.CharField(max_length=255, verbose_name="Nazwa leku")
     morning_dose = models.CharField(max_length=4, verbose_name="Dawka poranna")
     midday_dose = models.CharField(max_length=4, verbose_name="Dawka popołudniowa")
     evening_dose = models.CharField(max_length=4, verbose_name="Dawka wieczorna")
