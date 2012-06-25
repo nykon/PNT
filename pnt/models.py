@@ -48,6 +48,11 @@ class Address(models.Model):
         verbose_name = "Adres"
         verbose_name_plural = "Adresy"
 
+class Appointment(models.Model):
+    patient = models.ForeignKey('Patient', related_name="appointments", verbose_name="Pacjent")
+    date = models.DateField(verbose_name="Data")
+    time = models.TimeField(verbose_name="Godzina", null=True, blank=True)
+
 class Disease(models.Model):
     casehistory = models.ForeignKey('CaseHistory')
     disease = models.ForeignKey('records.CategoricalValue', verbose_name="Choroba", limit_choices_to={'group__name': 'disease'})
@@ -79,6 +84,8 @@ class Consultant(models.Model):
 
 class CaseHistory(models.Model):
     patient = models.ForeignKey('Patient', verbose_name="Pacjent")
+    appointment = models.OneToOneField('Appointment')
+
     diagnosis_year = models.IntegerField(verbose_name="Rok diagnozy")
     already_hospitalized = models.BooleanField(verbose_name="Hospitalizowany w tutejszej klinice?")
 
@@ -172,6 +179,7 @@ class FamilyDisease(models.Model):
 
 class LifeStyle(models.Model):
     patient = models.ForeignKey('Patient', verbose_name="Pacjent")
+    appointment = models.OneToOneField('Appointment')
 
     cigarets_start_age = models.IntegerField(verbose_name="Wiek rozpoczęcia palenia", null=True)
     cigarets_quit_age = models.IntegerField(verbose_name="Wiek rzucenia palenia", null=True)
@@ -243,6 +251,7 @@ class MealType(models.Model):
 
 class Meal(models.Model):
     patient = models.ForeignKey('Patient', verbose_name="Pacjent")
+    appointment = models.OneToOneField('Appointment')
     
     ready_meal_count = models.IntegerField(verbose_name="Częstotliwość kupowania gotowych posiłków")
     ready_meal_frequency = models.ForeignKey('records.CategoricalValue', related_name="meal_by_meal_usage_frequency", verbose_name="Jednostka częstości", limit_choices_to={'group__name': 'ready_meal_frequency'})
@@ -270,6 +279,7 @@ class Meal(models.Model):
 
 class Drink(models.Model):
     patient = models.ForeignKey('Patient', verbose_name="Pacjent")
+    appointment = models.OneToOneField('Appointment')
     
     water_volume = models.ForeignKey('records.CategoricalValue', related_name="drinks_by_water_volume", verbose_name="Liczba szklanek wypijanych dziennie")
     sweet_dring_daily = models.IntegerField(verbose_name="Liczba szklanek słodzonych napojów gazowanych wypijanych dziennie")
@@ -334,6 +344,7 @@ class EpworthScale(models.Model):
 
 class Apnoea(models.Model):
     patient = models.ForeignKey('Patient', verbose_name="Pacjent")
+    appointment = models.OneToOneField('Appointment')
 
     FREQ = (('1', 'Nigdy'), ('2', 'Rzadko (mniej niż raz w tygodniu)'),
                ('3', 'Okazjonalnie (1 - 3 x/tydzień)'), ('4', 'Często (częściej niż 3 x w tygodniu)'))    
@@ -366,6 +377,8 @@ class ApnoeaIdentification(models.Model):
 
 class LifeQuality(models.Model):
     patient = models.ForeignKey('Patient', verbose_name="Pacjent")
+    appointment = models.OneToOneField('Appointment')
+
     alergen_chemical = models.TextField(verbose_name="Jeżeli występują alergie na leki, podać jakie i dla jakich leków", blank=True)
     factors = models.ManyToManyField('records.CategoricalValue', through='LifeQualityFactor', verbose_name="Czynniki jakościujące")
 
@@ -439,6 +452,7 @@ class HypertensionChemicalRelation(models.Model):
 
 class Etiology(models.Model):
     patient = models.ForeignKey('Patient')
+    appointment = models.OneToOneField('Appointment')
 
     ACTUAL = (('a', 'Pierwotna'), ('b', 'Wtórna'))
     actual_etiology_value = models.CharField(max_length=1, choices=ACTUAL, verbose_name="Aktualna etiologia nadciśnienia")
