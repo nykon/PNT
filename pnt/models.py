@@ -2,6 +2,7 @@
 from django.db import models
 from synergy.contrib.history.models import HistoricalRecords
 import datetime
+from django.core.exceptions import ObjectDoesNotExist
 
 def _default_unicode(obj):
     return u"%s #%d" % (obj._meta.verbose_name, obj.id)
@@ -53,6 +54,19 @@ class Appointment(models.Model):
     date = models.DateField(verbose_name="Data")
     time = models.TimeField(verbose_name="Godzina", null=True, blank=True)
 
+    def __unicode__(self):
+        return u"Wizyta z dnia: %s, %s" % (self.date, self.patient)
+
+    def get_data(self):
+        models = ('casehistory', 'physicalactivity', 'lifequality', 'lifestyle', 'meal', 'drink', 'apnoea', 'etiology')
+        data = {}
+        for model in models:
+            try:
+                data[model] = getattr(self, model)
+            except ObjectDoesNotExist:
+                data[model] = None
+        return data
+
 class Disease(models.Model):
     casehistory = models.ForeignKey('CaseHistory')
     disease = models.ForeignKey('records.CategoricalValue', verbose_name="Choroba", limit_choices_to={'group__name': 'disease'})
@@ -83,7 +97,6 @@ class Consultant(models.Model):
         verbose_name_plural = "Rodzaje leczenia u specjalisty"
 
 class CaseHistory(models.Model):
-    patient = models.ForeignKey('Patient', verbose_name="Pacjent")
     appointment = models.OneToOneField('Appointment')
 
     diagnosis_year = models.IntegerField(verbose_name="Rok diagnozy")
@@ -95,7 +108,7 @@ class CaseHistory(models.Model):
     treatements = models.ManyToManyField('records.CategoricalValue', through='Consultant', related_name="casehistory_by_treatements", verbose_name="Leczenie u specjalisty")
 
     def __unicode__(self):
-        return u"Rok diagnozy: %s (%s)" % (self.diagnosis_year, self.patient)
+        return u"Rok diagnozy: %s (%s)" % (self.diagnosis_year, self.appointment.patient)
 
     class Meta:
         verbose_name = "Historia choroby"
@@ -178,7 +191,6 @@ class FamilyDisease(models.Model):
         verbose_name_plural = "Choroby w rodzinie"
 
 class LifeStyle(models.Model):
-    patient = models.ForeignKey('Patient', verbose_name="Pacjent")
     appointment = models.OneToOneField('Appointment')
 
     cigarets_start_age = models.IntegerField(verbose_name="Wiek rozpoczęcia palenia", null=True)
@@ -250,7 +262,6 @@ class MealType(models.Model):
     times_per_week = models.IntegerField(verbose_name="Ile razy w tygodniu?")
 
 class Meal(models.Model):
-    patient = models.ForeignKey('Patient', verbose_name="Pacjent")
     appointment = models.OneToOneField('Appointment')
     
     ready_meal_count = models.IntegerField(verbose_name="Częstotliwość kupowania gotowych posiłków")
@@ -278,7 +289,6 @@ class Meal(models.Model):
         verbose_name_plural = u"Posiłki"
 
 class Drink(models.Model):
-    patient = models.ForeignKey('Patient', verbose_name="Pacjent")
     appointment = models.OneToOneField('Appointment')
     
     water_volume = models.ForeignKey('records.CategoricalValue', related_name="drinks_by_water_volume", verbose_name="Liczba szklanek wypijanych dziennie")
@@ -300,7 +310,7 @@ class Drink(models.Model):
         verbose_name_plural = "Napoje"
 
 class PhysicalActivity(models.Model):
-    patient = models.ForeignKey('Patient', verbose_name="Pacjent")
+    appointment = models.OneToOneField('Appointment')
 
     work_mode = models.ForeignKey('records.CategoricalValue', verbose_name="Tryb pracy")
     # multiple
@@ -343,7 +353,6 @@ class EpworthScale(models.Model):
         verbose_name_plural = u"Skala Epworth"
 
 class Apnoea(models.Model):
-    patient = models.ForeignKey('Patient', verbose_name="Pacjent")
     appointment = models.OneToOneField('Appointment')
 
     FREQ = (('1', 'Nigdy'), ('2', 'Rzadko (mniej niż raz w tygodniu)'),
@@ -376,7 +385,6 @@ class ApnoeaIdentification(models.Model):
         verbose_name_plural = u"Czynniki identyfikujące bezdech"
 
 class LifeQuality(models.Model):
-    patient = models.ForeignKey('Patient', verbose_name="Pacjent")
     appointment = models.OneToOneField('Appointment')
 
     alergen_chemical = models.TextField(verbose_name="Jeżeli występują alergie na leki, podać jakie i dla jakich leków", blank=True)
@@ -451,7 +459,6 @@ class HypertensionChemicalRelation(models.Model):
 
 
 class Etiology(models.Model):
-    patient = models.ForeignKey('Patient')
     appointment = models.OneToOneField('Appointment')
 
     ACTUAL = (('a', 'Pierwotna'), ('b', 'Wtórna'))
@@ -464,6 +471,10 @@ class Etiology(models.Model):
     derivative_etiology_backgrounds = models.ManyToManyField('records.CategoricalValue', through='DerivativeEtiologyBackground', related_name="etiology_by_derivatives", verbose_name = "Tło etiologi wtórnej")
     
     hypertension_chemicals = models.ManyToManyField('records.CategoricalValue', through='HypertensionChemicalRelation', related_name="etiology_by_chemicals", verbose_name="NT związane z lekami/środkami chemicznymi")
+
+
+    def __unicode__(self):
+        return u"Etiologia NT z dnia %s, %s" % (self.appointment.date, self.appointment.patient)
 
 
     class Meta:

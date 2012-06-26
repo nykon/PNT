@@ -15,6 +15,10 @@ admin.site.register(HipotensionChemical)
 admin.site.register(HipotensionChemicalTaken, HipChemTakenAdmin)
 admin.site.register(PharmaGroup)
 admin.site.register(ChemicalInternationalType)
+admin.site.register(Etiology)
+admin.site.register(Meal)
+
+admin.site.register(Appointment)
 
 
 
