@@ -58,7 +58,7 @@ class Appointment(models.Model):
         return u"Wizyta z dnia: %s, %s" % (self.date, self.patient)
 
     def get_data(self):
-        models = ('casehistory', 'physicalactivity', 'lifequality', 'lifestyle', 'meal', 'drink', 'apnoea', 'etiology')
+        models = ('casehistory', 'physicalactivity', 'lifequality', 'lifestyle', 'meal', 'drink', 'apnoea', 'etiology', 'sideissue')
         data = {}
         for model in models:
             try:
