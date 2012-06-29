@@ -67,6 +67,10 @@ class Appointment(models.Model):
                 data[model] = None
         return data
 
+    class Meta:
+        verbose_name = "Wizyta"
+        verbose_name_plural = "Wizyty"
+
 class Disease(models.Model):
     casehistory = models.ForeignKey('CaseHistory')
     disease = models.ForeignKey('records.CategoricalValue', verbose_name="Choroba", limit_choices_to={'group__name': 'disease'})
@@ -90,22 +94,48 @@ class GeneralDisease(models.Model):
 class Consultant(models.Model):
     casehistory = models.ForeignKey('CaseHistory')
     consultant = models.ForeignKey('records.CategoricalValue')
-
+    note = models.TextField(verbose_name="Notatka", blank=True)
     class Meta:
         unique_together = (('casehistory', 'consultant'),)
         verbose_name = "Leczenie u specjalisty"
         verbose_name_plural = "Rodzaje leczenia u specjalisty"
 
+
+class WomenSexLife(models.Model):
+    casehistory = models.OneToOneField('CaseHistory')
+    menopause = models.ForeignKey('records.CategoricalValue', related_name="womensexlifes_by_contraceptive", null=True, verbose_name="Menopauza", limit_choices_to={'group__name': 'menopause'})
+    pregnancy_count = models.IntegerField(verbose_name="Liczba ciąż")
+    births_count = models.IntegerField(verbose_name="Liczba urodzeń żywych", )
+    miscarriage_count = models.IntegerField(verbose_name="Liczba poronień")
+    still_birth_count = models.IntegerField(verbose_name="Liczba urodzeń martwych")
+
+    class Meta:
+        verbose_name = "Wywiad ginekologiczno-położniczy"
+        verbose_name_plural = "Wywiad ginekologiczno-położniczy"
+    
+    
+class Contraceptive(models.Model):
+    casehistory = models.ForeignKey('CaseHistory')
+    contraceptive = models.ForeignKey('records.CategoricalValue', related_name="sexlifes_by_contraceptive", limit_choices_to={'group__name': 'contraceptive'})
+    name = models.CharField(max_length=255, verbose_name="Nazwa leku")
+    how_long = models.IntegerField(verbose_name="Liczba miesięcy stosowania")
+
+    class Meta:
+        unique_together = (('casehistory', 'contraceptive'),)
+        verbose_name = "Lek antykoncpecyjny"
+        verbose_name_plural = "Leki antykoncpecyjne"
+
 class CaseHistory(models.Model):
-    appointment = models.OneToOneField('Appointment')
+    appointment = models.OneToOneField('Appointment', verbose_name="Wizyta")
 
     diagnosis_year = models.IntegerField(verbose_name="Rok diagnozy")
     already_hospitalized = models.BooleanField(verbose_name="Hospitalizowany w tutejszej klinice?")
 
     diseases = models.ManyToManyField('records.CategoricalValue', through=Disease, verbose_name="Choroby współistniejące", related_name="casehistory_by_disease")
-    general_disepases = models.ManyToManyField('records.CategoricalValue', through=GeneralDisease, verbose_name="Choroby złożone", related_name="casehistory_by_general_disease")
+    general_disepases = models.ManyToManyField('records.CategoricalValue', through=GeneralDisease, verbose_name="Choroby współistniejące z opisem", related_name="casehistory_by_general_disease")
 
     treatements = models.ManyToManyField('records.CategoricalValue', through='Consultant', related_name="casehistory_by_treatements", verbose_name="Leczenie u specjalisty")
+    contraceptives = models.ManyToManyField('records.CategoricalValue', through='Contraceptive', verbose_name="Leki antykoncepcyjne", related_name="lifestyle_by_contraceptive")
 
     def __unicode__(self):
         return u"Rok diagnozy: %s (%s)" % (self.diagnosis_year, self.appointment.patient)
@@ -149,8 +179,8 @@ class HipotensionChemical(models.Model):
 
     class Meta:
         unique_together = (('name', 'pharma_group',),)
-        verbose_name = "Lek hipotensyjny"
-        verbose_name_plural = "Lek hipotensyjny"
+        verbose_name = "Rodzaj leku hipotensyjnego"
+        verbose_name_plural = "Rodzaje leków hipotensyjnych"
         ordering = ('name', 'international_name__name')
     
 class HipotensionChemicalTaken(models.Model):
@@ -163,8 +193,8 @@ class HipotensionChemicalTaken(models.Model):
 
     class Meta:
         unique_together = (('casehistory', 'hipotension_chemical',),)
-        verbose_name = "Przyjmowany lek hipotensyjny"
-        verbose_name_plural = "Przyjmowany lek hipotensyjny"
+        verbose_name = "Lek hipotensyjny"
+        verbose_name_plural = "Leki hipotensyjne"
 
 class OtherChemical(models.Model):
     casehistory = models.ForeignKey('CaseHistory', related_name="other_chemicals")
@@ -175,8 +205,8 @@ class OtherChemical(models.Model):
 
     class Meta:
         unique_together = (('casehistory', 'other_chemical',),)
-        verbose_name = "Inny lek"
-        verbose_name_plural = "Inny lek"
+        verbose_name = "Lek pozostałyk"
+        verbose_name_plural = "Leki pozostałe"
     
 class FamilyDisease(models.Model):
     MEMBERS = (('a','Ojciec'), ('b', 'Matka'), ('c', 'Brat'), ('d', 'Siostra'))
@@ -191,7 +221,7 @@ class FamilyDisease(models.Model):
         verbose_name_plural = "Choroby w rodzinie"
 
 class LifeStyle(models.Model):
-    appointment = models.OneToOneField('Appointment')
+    appointment = models.OneToOneField('Appointment', verbose_name="Wizyta")
 
     cigarets_start_age = models.IntegerField(verbose_name="Wiek rozpoczęcia palenia", null=True)
     cigarets_quit_age = models.IntegerField(verbose_name="Wiek rzucenia palenia", null=True)
@@ -207,7 +237,6 @@ class LifeStyle(models.Model):
     drugs_taken = models.CharField(max_length=255, verbose_name="Przyjmowane narkotyki")
     
     stimulants = models.ManyToManyField('records.CategoricalValue', through='Stimulant', verbose_name="Spożycie używek", related_name="lifestyle_by_stimulants")
-    contraceptives = models.ManyToManyField('records.CategoricalValue', through='Contraceptive', verbose_name="Leki antykoncepcyjne", related_name="lifestyle_by_contraceptive")
 
     def __unicode__(self):
         return _default_unicode(self)
@@ -216,31 +245,6 @@ class LifeStyle(models.Model):
     class Meta:
         verbose_name = u"Styl życia"
         verbose_name_plural = u"Styl życia"
-
-
-class WomenSexLife(models.Model):
-    lifestyle = models.OneToOneField('LifeStyle')
-    menopause = models.ForeignKey('records.CategoricalValue', related_name="womensexlifes_by_contraceptive", null=True, verbose_name="Menopauza", limit_choices_to={'group__name': 'menopause'})
-    pregnancy_count = models.IntegerField(verbose_name="Liczba ciąż")
-    births_count = models.IntegerField(verbose_name="Liczba urodzeń żywych", )
-    miscarriage_count = models.IntegerField(verbose_name="Liczba poronień")
-    still_birth_count = models.IntegerField(verbose_name="Liczba urodzeń martwych")
-
-    class Meta:
-        verbose_name = "Informacje dot. kobiety"
-        verbose_name_plural = "Informacje dot. kobiet"
-    
-    
-class Contraceptive(models.Model):
-    lifestyle = models.ForeignKey('LifeStyle')
-    contraceptive = models.ForeignKey('records.CategoricalValue', related_name="sexlifes_by_contraceptive", limit_choices_to={'group__name': 'contraceptive'})
-    name = models.CharField(max_length=255, verbose_name="Nazwa leku")
-    how_long = models.IntegerField(verbose_name="Liczba miesięcy stosowania")
-
-    class Meta:
-        unique_together = (('lifestyle', 'contraceptive'),)
-        verbose_name = "Lek antykoncpecyjny"
-        verbose_name_plural = "Leki antykoncpecyjne"
 
 
 class Stimulant(models.Model):
@@ -262,13 +266,13 @@ class MealType(models.Model):
     times_per_week = models.IntegerField(verbose_name="Ile razy w tygodniu?")
 
 class Meal(models.Model):
-    appointment = models.OneToOneField('Appointment')
+    appointment = models.OneToOneField('Appointment', verbose_name="Wizyta")
     
-    ready_meal_count = models.IntegerField(verbose_name="Częstotliwość kupowania gotowych posiłków")
-    ready_meal_frequency = models.ForeignKey('records.CategoricalValue', related_name="meal_by_meal_usage_frequency", verbose_name="Jednostka częstości", limit_choices_to={'group__name': 'ready_meal_frequency'})
+    ready_meal_count = models.IntegerField(verbose_name="Jak często kupuje gotowe posiłki?")
+    ready_meal_frequency = models.ForeignKey('records.CategoricalValue', related_name="meal_by_meal_usage_frequency", verbose_name="Na dzień/tydzień/miesiąc", limit_choices_to={'group__name': 'ready_meal_frequency'})
 
-    outdoor_meal_count = models.IntegerField(verbose_name="Częstotliwość stołowania się w restauracjach typu fast-food?")
-    outdoor_meal_frequency = models.ForeignKey('records.CategoricalValue', related_name="meal_by_outdoor_usage_frequency", verbose_name="Jednostka częstości", limit_choices_to={'group__name': 'outdoor_meal_frequency'})
+    outdoor_meal_count = models.IntegerField(verbose_name="Jak często jada w restauracjach typu fast food?")
+    outdoor_meal_frequency = models.ForeignKey('records.CategoricalValue', related_name="meal_by_outdoor_usage_frequency", verbose_name="Na dzień/tydzień/miesiąc", limit_choices_to={'group__name': 'outdoor_meal_frequency'})
 
     meal_types = models.ManyToManyField('records.CategoricalValue', through='MealType', verbose_name="Rodzaj pożywienia")
     dairy_type = models.CharField(max_length=255, verbose_name="Typ nabiału spożywany najczęściej")
@@ -279,6 +283,9 @@ class Meal(models.Model):
     meal_type_most_frequent = models.ForeignKey('records.CategoricalValue', related_name="meal_by_meal_type_most_frequent", verbose_name="Typ potrawy najczęściej spożywanej", limit_choices_to={'group__name': 'meal_type_most_frequent'})
     bread_type_most_frequent = models.ForeignKey('records.CategoricalValue', related_name="meal_by_bread_type_most_frequent", verbose_name="Typ pieczywa najczęściej spożywanego", limit_choices_to={'group__name': 'bread_type_most_frequent'})
     butter_type_most_frequent = models.ForeignKey('records.CategoricalValue', related_name="meal_by_butter_type_most_frequent", verbose_name="Rodzaj tłuszczu używanego  zazwyczaj do smarowania pieczywa",  limit_choices_to={'group__name': 'butter_type_most_frequent'})
+
+    mainly_preservative_meal = models.BooleanField(verbose_name="Spożywa głównie produkty konserwowe")
+    extra_salt = models.BooleanField(verbose_name="Dosala potrawy")
     
 
     def __unicode__(self):
@@ -289,7 +296,7 @@ class Meal(models.Model):
         verbose_name_plural = u"Posiłki"
 
 class Drink(models.Model):
-    appointment = models.OneToOneField('Appointment')
+    appointment = models.OneToOneField('Appointment', verbose_name="Wizyta")
     
     water_volume = models.ForeignKey('records.CategoricalValue', related_name="drinks_by_water_volume", verbose_name="Liczba szklanek wypijanych dziennie")
     sweet_dring_daily = models.IntegerField(verbose_name="Liczba szklanek słodzonych napojów gazowanych wypijanych dziennie")
@@ -299,9 +306,6 @@ class Drink(models.Model):
     tee_type = models.ForeignKey('records.CategoricalValue', related_name="drinks_by_tee_type", verbose_name="Najczęściej wypijany rodzaj herbaty")
     sugar_spoons = models.IntegerField(verbose_name="Liczba łyżeczek cukru do  herbaty/kawy")
 
-    mainly_preservative_meal = models.BooleanField(verbose_name="Spożywa głównie produkty konserwowe")
-    extra_salt = models.BooleanField(verbose_name="Dosala potrawy")
-
     def __unicode__(self):
         return _default_unicode(self)
 
@@ -310,14 +314,14 @@ class Drink(models.Model):
         verbose_name_plural = "Napoje"
 
 class PhysicalActivity(models.Model):
-    appointment = models.OneToOneField('Appointment')
+    appointment = models.OneToOneField('Appointment', verbose_name="Wizyta")
 
     work_mode = models.ForeignKey('records.CategoricalValue', verbose_name="Tryb pracy")
     # multiple
     # movement_mode = models.ForeignKey('records.CategoricalValue')
     
     daily_in_car = models.IntegerField(verbose_name="Liczba minut dziennie w  samochodzie?")
-    daily_in_bike = models.IntegerField(verbose_name="Liczba minut dizennie rowerem")
+    daily_in_bike = models.IntegerField(verbose_name="Liczba minut dziennie rowerem")
     daily_on_foot = models.IntegerField(verbose_name="Liczba minut dziennie pieszo")
 
     last_year_sport_months = models.IntegerField(verbose_name="Liczba miesięcy w ciągu ostatniego roku regularnego sportu")
@@ -336,8 +340,8 @@ class PhysicalActivity(models.Model):
 class EpworthScale(models.Model):
     apnoea = models.OneToOneField('Apnoea', verbose_name="Ocena bezdechu")
 
-    CHOICES = (('0', 'Nigdy nie zasnę'), ('1', 'Małe prawdopodobieństwo'),
-               ('2', 'Prawdopodobnie tak'), ('3', 'Prawie na pewno'))
+    CHOICES = (('1', 'Nigdy nie zasnę'), ('2', 'Małe prawdopodobieństwo'),
+               ('3', 'Prawdopodobnie tak'), ('4', 'Prawie na pewno'))
 
     sitting = models.CharField(max_length=1, choices=CHOICES, verbose_name="Siedząc lub/i czytając")
     tv_watch = models.CharField(max_length=1, choices=CHOICES, verbose_name="Oglądając telewizję")
@@ -348,12 +352,18 @@ class EpworthScale(models.Model):
     after_dinner = models.CharField(max_length=1, choices=CHOICES, verbose_name="Po obiedzie (bez alkoholu), siedząc w spokojnym miejscu")
     car_driving = models.CharField(max_length=1, choices=CHOICES, verbose_name="Prowadząc samochód, podczas kilkuminutowego oczekiwania w korku")
     
+    def get_points(self):
+        return sum(map(int, (getattr(self, attr) for attr in ('sitting', 'tv_watch', 'public', 'in_car_passenger', 'afternoon_rest', 'talk_sitting', 'after_dinner', 'car_driving'))))
+
+    def at_risk(self):
+        return self.get_points() >= 10
+
     class Meta:
         verbose_name = u"Skala Epworth"
         verbose_name_plural = u"Skala Epworth"
 
 class Apnoea(models.Model):
-    appointment = models.OneToOneField('Appointment')
+    appointment = models.OneToOneField('Appointment', verbose_name="Wizyta")
 
     FREQ = (('1', 'Nigdy'), ('2', 'Rzadko (mniej niż raz w tygodniu)'),
                ('3', 'Okazjonalnie (1 - 3 x/tydzień)'), ('4', 'Często (częściej niż 3 x w tygodniu)'))    
@@ -366,14 +376,64 @@ class Apnoea(models.Model):
     sleap_apnoea = models.CharField(max_length=1, choices=FREQ, verbose_name=u"Jak często mówiono że ma „przerwy w oddychaniu podczas snu?")
     overweight = models.CharField(max_length=1, choices=OVERWEIGHT, verbose_name=u"Ile ma kilogramów (w oryginale funtów) nadwagi?")
     # D. Ile wynosi Pana/Pani wynik w skali Epworth?
-    identifications = models.ManyToManyField('records.CategoricalValue', through='ApnoeaIdentification', verbose_name="Czynniki identyfikujące")
+    relateddiseases = models.ManyToManyField('records.CategoricalValue', through='ApnoeaRelatedDisease', related_name="a", verbose_name="Schorzenia sugerujące bezdech senny")
+    identifications = models.ManyToManyField('records.CategoricalValue', through='ApnoeaIdentification', related_name="b", verbose_name="Objawy sugerujące bezdech senny")
 
+
+    def get_epworth_points(self):
+        try:
+            return self.epworthscale.get_points()
+        except ObjectDoesNotExist:
+            return None
+        
+    def at_epworth_risk(self):
+        try:
+            return self.epworthscale.at_risk()
+        except ObjectDoesNotExist:
+            return None
+        
+
+    def get_epworth_scale(self):
+        epworth_points = self.get_epworth_points()
+        if epworth_points:
+            for i, limit in enumerate((8, 13, 18, 19)):
+                if epworth_points <= limit:
+                    return i +1
+        return None
+            
+
+    def get_apnoea_points(self):
+        epworth_scale = self.get_epworth_scale()
+        if epworth_scale:
+            return sum([int(getattr(self, state)) for state in ('snooring', 'sleap_apnoea', 'overweight')]) + epworth_scale
+        return None
+
+    def get_apnoea_risk_limit(self):
+        limits = {True: 12, False: 16}
+        return limits[self.has_apnoea_suggestions()]
+
+    def at_apnoea_risk(self):
+        return self.get_apnoea_points() >= self.get_apnoea_risk_limit()
+
+    def has_apnoea_suggestions(self):
+        return self.relateddiseases.exists() or self.identifications.exists()
+        
     def __unicode__(self):
         return _default_unicode(self)
 
     class Meta:
-        verbose_name = u"Ocena Ryzyka Bezdechu Sennego"
-        verbose_name_plural = u"Oceny Ryzyka Bezdechu Sennego"
+        verbose_name = u"Bezdech Senny"
+        verbose_name_plural = u"Bezdech Senny"
+
+class ApnoeaRelatedDisease(models.Model):
+    apnoea = models.ForeignKey('Apnoea')
+    apnoearelateddisease = models.ForeignKey('records.CategoricalValue', related_name="apnoea_by_disease", verbose_name="Rozpoznanie", limit_choices_to={'group__name': 'apnoearelateddisease'})
+
+    class Meta:
+        unique_together = (('apnoea', 'apnoearelateddisease'),)
+        verbose_name = u"Schorzenie sugerujące bezdech senny"
+        verbose_name_plural = u"Schorzenia sugerujące bezdech senny"
+
 
 class ApnoeaIdentification(models.Model):
     apnoea = models.ForeignKey('Apnoea')
@@ -381,11 +441,13 @@ class ApnoeaIdentification(models.Model):
 
     class Meta:
         unique_together = (('apnoea', 'apnoeaidentification'),)
-        verbose_name = u"Czynnik identyfikujący bezdech"
-        verbose_name_plural = u"Czynniki identyfikujące bezdech"
+        verbose_name = u"Objaw sugerujący bezdech senny"
+        verbose_name_plural = u"Objawy sugerujące bezdech senny"
+
+
 
 class LifeQuality(models.Model):
-    appointment = models.OneToOneField('Appointment')
+    appointment = models.OneToOneField('Appointment', verbose_name="Wizyta")
 
     alergen_chemical = models.TextField(verbose_name="Jeżeli występują alergie na leki, podać jakie i dla jakich leków", blank=True)
     factors = models.ManyToManyField('records.CategoricalValue', through='LifeQualityFactor', verbose_name="Czynniki jakościujące")
@@ -459,7 +521,7 @@ class HypertensionChemicalRelation(models.Model):
 
 
 class Etiology(models.Model):
-    appointment = models.OneToOneField('Appointment')
+    appointment = models.OneToOneField('Appointment', verbose_name="Wizyta")
 
     ACTUAL = (('a', 'Pierwotna'), ('b', 'Wtórna'))
     actual_etiology_value = models.CharField(max_length=1, choices=ACTUAL, verbose_name="Aktualna etiologia nadciśnienia")
