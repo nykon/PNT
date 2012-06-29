@@ -445,6 +445,39 @@ class ApnoeaIdentification(models.Model):
         verbose_name_plural = u"Objawy sugerujące bezdech senny"
 
 
+        
+        
+        
+        
+        
+class SideIssue(models.Model):
+    appointment = models.OneToOneField('Appointment', verbose_name="Wizyta")
+    has_allergy = models.BooleanField(verbose_name = "Czy występują alergie na leki ?")
+    alergen_chemical = models.TextField(verbose_name="Jeżeli występują alergie na leki, podać jakie i dla jakich leków", blank=True)
+    factors = models.ManyToManyField('records.CategoricalValue', through='SideIssueFactor', verbose_name="Działania niepożądane")
+
+    def __unicode__(self):
+        return _default_unicode(self)
+
+    class Meta:
+        verbose_name = u"Objaw uboczny"
+        verbose_name_plural = u"Objawy uboczne"
+
+class SideIssueFactor(models.Model):
+    sideissue = models.ForeignKey('SideIssue')
+    sideissuefactor = models.ForeignKey('records.CategoricalValue', related_name="sideissues_by_factor", verbose_name="Faktor", limit_choices_to={'group__name': 'sideissuefactor'})    
+
+    class Meta:
+        unique_together = (('sideissue', 'sideissuefactor'),)
+        verbose_name = u"Czynnik efektów ubocznych"
+        verbose_name_plural = u"Czynniki efektów ubocznych"
+        
+        
+
+        
+        
+        
+        
 
 class LifeQuality(models.Model):
     appointment = models.OneToOneField('Appointment', verbose_name="Wizyta")
