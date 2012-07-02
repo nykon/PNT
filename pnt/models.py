@@ -510,7 +510,87 @@ class LifeQuality(models.Model):
         verbose_name = u"Jakość życia"
         verbose_name_plural = u"Jakość życia"
 
-
+    def get_sf36_points(self):
+        health_state = {'a':0, 'b':1, 'c':2, 'd':3, 'e':4}
+        health_state_pts = health_state[self.health_state]
+        
+        health_change = {'a':0, 'b':1, 'c':2, 'd':3, 'e':4}
+        health_change_pts = health_change[self.health_change]
+    
+        problem_impact = {'a':0, 'b':1, 'c':2, 'd':3, 'e':4}
+        problem_impact_pts = problem_impact[self.problem_impact ]
+    
+        pain_freq = {'a':0, 'b':1, 'c':2, 'd':3, 'e':4, 'f':5}
+        pain_freq_pts = pain_freq[self.pain_freq]
+    
+        pain_impact = {'a':0, 'b':1, 'c':2, 'd':3, 'e':4}
+        pain_impact_pts = pain_impact[self.pain_impact]
+        
+        condition_impact = {'a':4, 'b':3, 'c':2, 'd':1, 'e':0}
+        condition_impact_pts = condition_impact [self.condition_impact]
+        
+        
+        activity_limits = {'a':5, 'b':3, 'c':0}
+        activity_limits_pts = 0
+        for i in self.activitylimit_set.all():
+            activity_limits_pts += activity_limits[i.limit]
+        
+        health_problems = {'a':5, 'b':5, 'c':5, 'd':5}
+        health_problems_pts = 0
+        for i in self.healthproblem_set.all():
+            health_problems_pts += health_problems_pts[i.limit]
+            
+        emotional_problems = {'a':5, 'b':5, 'c':5}
+        emotional_problems_pts = 0
+        for i in self.emotionalproblem_set.all():
+            emotional_problems_pts += emotional_problems[i.limit]
+       
+        
+        
+        #mood
+        mood_symptoms = { 1: {'a':0, 'b':1, 'c':2, 'd':3, 'e':4, 'f':5},
+                          2: {'a':5, 'b':4, 'c':3, 'd':2, 'e':1, 'f':0},
+                          3: {'a':5, 'b':4, 'c':3, 'd':2, 'e':1, 'f':0},
+                          4: {'a':0, 'b':1, 'c':2, 'd':3, 'e':4, 'f':5},
+                          5: {'a':0, 'b':1, 'c':2, 'd':3, 'e':4, 'f':5},
+                          6: {'a':5, 'b':4, 'c':3, 'd':2, 'e':1, 'f':0},
+                          7: {'a':5, 'b':4, 'c':3, 'd':2, 'e':1, 'f':0},
+                          8: {'a':0, 'b':1, 'c':2, 'd':3, 'e':4, 'f':5},
+                          9: {'a':5, 'b':4, 'c':3, 'd':2, 'e':1, 'f':0}}
+           
+        mood_symptoms_pts = 0
+        for  i in self.moodsymptom_set.all():
+           key = i.moodsymptom.weight
+           val = i.freq
+           mood_symptoms_pts += mood_symptoms[key][val]
+        
+        
+        #healthselfopinion
+        health_opinion = { 1: {'a':0, 'b':1, 'c':2, 'd':3, 'e':4},
+                           2: {'a':0, 'b':1, 'c':2, 'd':3, 'e':4},
+                           3: {'a':4, 'b':3, 'c':2, 'd':1, 'e':0},
+                           4: {'a':0, 'b':1, 'c':2, 'd':3, 'e':4}}
+           
+        health_opinion_pts = 0
+        for  i in self.healthselfopinion_set.all():
+           key = i.healthselfopinion.weight
+           val = i.state_power
+           health_opinion_pts += health_opinion[key][val]
+        
+        
+       
+        points = {'health_state':health_state_pts, 'health_change':health_change_pts,
+                  'problem_impact':problem_impact_pts, 'pain_freq':pain_freq_pts,
+                  'pain_impact':pain_impact_pts, 'condition_impact':condition_impact_pts,
+                  'activity_limits':activity_limits_pts, 'health_problems':health_problems_pts,
+                  'emotional_problems':emotional_problems_pts, 'mood_symptoms':mood_symptoms_pts, 
+                  'health_opinion':health_opinion_pts}
+                  
+        return points
+        
+           
+        
+        
 class ActivityLimit(models.Model):
     lifequality = models.ForeignKey('LifeQuality')
     activitylimit = models.ForeignKey('records.CategoricalValue', related_name="lifequality_by_activity", verbose_name="Czynność", limit_choices_to={'group__name': 'activitylimit'})    
