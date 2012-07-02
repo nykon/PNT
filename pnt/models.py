@@ -444,11 +444,6 @@ class ApnoeaIdentification(models.Model):
         verbose_name = u"Objaw sugerujący bezdech senny"
         verbose_name_plural = u"Objawy sugerujące bezdech senny"
 
-
-        
-        
-        
-        
         
 class SideIssue(models.Model):
     appointment = models.OneToOneField('Appointment', verbose_name="Wizyta")
@@ -472,18 +467,41 @@ class SideIssueFactor(models.Model):
         verbose_name = u"Czynnik efektów ubocznych"
         verbose_name_plural = u"Czynniki efektów ubocznych"
         
-        
-
-        
-        
-        
-        
 
 class LifeQuality(models.Model):
     appointment = models.OneToOneField('Appointment', verbose_name="Wizyta")
 
-    alergen_chemical = models.TextField(verbose_name="Jeżeli występują alergie na leki, podać jakie i dla jakich leków", blank=True)
-    factors = models.ManyToManyField('records.CategoricalValue', through='LifeQualityFactor', verbose_name="Czynniki jakościujące")
+
+    STATES = (('a', 'Doskonały'), ('b', 'Bardzo doby'), ('c', 'Dobry'), ('d', 'Zadowalający'), ('e', 'Niezadowalający'))
+    health_state = models.CharField(max_length=1, choices=STATES, verbose_name="Stan drowia")
+
+    CHANGES = (('a', 'Dużo lepiej niż rok temu'), ('b', 'Trochę lepiej niż rok temu'), ('c', 'Bardzo podobnie jak rok temu'), 
+               ('d', 'Trochę gorzej niż rok temu'), ('e', 'Dużo gorzej niż rok temu'))
+    health_change = models.CharField(max_length=1, choices=CHANGES, verbose_name="Stan zdrowia w porównaniu z analogicznym okresem w ubiegłym roku")
+
+
+    IMPACTS = (('a', 'Nie, wcale'), ('b', 'Rzadko'), ('c', 'Czasami'), 
+               ('d', 'Nawet bardzo'), ('e', 'Bardzo duży'))
+    problem_impact = models.CharField(max_length=1, choices=IMPACTS, verbose_name="Jak często problemy zdrowotne/emocjonalne wpływały na aktywności i kontakty w ciągu ostatniego miesiąca")
+
+
+    PAIN_FREQ = (('a', 'Nigdy'), ('b', 'Bardzo rzadko'), ('c', 'Rzadko'), ('d', 'Wyjątkowo'), ('e', 'Często'), ('f', 'Bardzo często'))
+    pain_freq= models.CharField(max_length=1, choices=CHANGES, verbose_name="Liczba razy gdy oczywał ból w ciągu ostatniego misiąca")
+
+
+    PAIN_IMPACT = (('a', 'Wcale'), ('b', 'Trochę'), ('c', 'Średnio'), ('d', 'Nawet bardzo'), ('e', 'Bardzo'))
+    pain_impact = models.CharField(max_length=1, choices=PAIN_IMPACT, verbose_name="Jak często w ostatnim miesiącu ból zakłócał normalną pracę (zawodową/domową)?")
+
+
+    CONDITION_IMPACT = (('a', 'Cały czas'), ('b', 'Większość czasu'), ('c', 'Część czasu'), ('d', 'Mało czasu'), ('e', 'Wcale'))
+    condition_impact = models.CharField(max_length=1, choices=CONDITION_IMPACT, verbose_name="Jak często w ostatnim miesiącu zdrowie lub emocje wpływały na kontakty towarzystkie?")
+
+
+    activitylimits = models.ManyToManyField('records.CategoricalValue', through='ActivityLimit', verbose_name="Ograniczenia aktywności dziennych", related_name="al")
+    healthproblems = models.ManyToManyField('records.CategoricalValue', through='HealthProblem', verbose_name="Problem z pracą/aktywnością ze względu na stan zdrowia", related_name="hp")
+    emotionalproblems = models.ManyToManyField('records.CategoricalValue', through='EmotionalProblem', verbose_name="Problem z pracą/aktywnością ze względu na emocje", related_name="ep")
+    moodsymptoms = models.ManyToManyField('records.CategoricalValue', through='MoodSymptom', verbose_name="Częstość występowania objawów stanu samopoczucia", related_name="ms")
+    healthselfopinions = models.ManyToManyField('records.CategoricalValue', through='HealthSelfOpinion', verbose_name="Samoocena stanu zdrowia", related_name="hso")
 
     def __unicode__(self):
         return _default_unicode(self)
@@ -492,14 +510,65 @@ class LifeQuality(models.Model):
         verbose_name = u"Jakość życia"
         verbose_name_plural = u"Jakość życia"
 
-class LifeQualityFactor(models.Model):
+
+class ActivityLimit(models.Model):
     lifequality = models.ForeignKey('LifeQuality')
-    lifequalityfactor = models.ForeignKey('records.CategoricalValue', related_name="lifequiality_by_factor", verbose_name="Faktor", limit_choices_to={'group__name': 'lifequalityfactor'})    
+    activitylimit = models.ForeignKey('records.CategoricalValue', related_name="lifequality_by_activity", verbose_name="Czynność", limit_choices_to={'group__name': 'activitylimit'})    
+
+    LIMITS = (('a', 'Bardzo ogranicza'), ('b', 'Trochę ogranicza'), ('c', 'Nie ogranicza wcale'))
+    limit = models.CharField(max_length=1, choices=LIMITS, verbose_name="Poziom ograniczenia")
 
     class Meta:
-        unique_together = (('lifequality', 'lifequalityfactor'),)
-        verbose_name = u"Czynnik jakości życia"
-        verbose_name_plural = u"Czynniki jakości życia"
+        unique_together = (('lifequality', 'activitylimit'),)
+        verbose_name = u"Ograniczenia aktywności dziennych"
+        verbose_name_plural = u"Ograniczenia aktywności dziennych"
+
+class HealthProblem(models.Model):
+    lifequality = models.ForeignKey('LifeQuality')
+    healthproblem = models.ForeignKey('records.CategoricalValue', related_name="lifequality_by_healthproblem", verbose_name="Problem", limit_choices_to={'group__name': 'healthproblem'})    
+
+    class Meta:
+        unique_together = (('lifequality', 'healthproblem'),)
+        verbose_name = u"Proble związany ze zdrowiem"
+        verbose_name_plural = u"Problemy związane ze zdrowiem"
+
+
+class EmotionalProblem(models.Model):
+    lifequality = models.ForeignKey('LifeQuality')
+    emotionalproblem = models.ForeignKey('records.CategoricalValue', related_name="lifequality_by_emotionalproblem", verbose_name="Problem", limit_choices_to={'group__name': 'healthproblem'})    
+
+    class Meta:
+        unique_together = (('lifequality', 'emotionalproblem'),)
+        verbose_name = u"Problem z pracą/aktywnością"
+        verbose_name_plural = u"Problemy z pracą/aktywnością"
+
+
+class MoodSymptom(models.Model):
+    lifequality = models.ForeignKey('LifeQuality')
+    moodsymptom = models.ForeignKey('records.CategoricalValue', related_name="lifequality_by_symptom", verbose_name="Symptom", limit_choices_to={'group__name': 'moodsymptom'})    
+
+    FREQ = (('a', 'Cały czas'), ('b', 'Większość czasu'), ('c', 'Dużo czasu'), ('d', 'Jakiś czas'), ('e', 'Mało czasu'), ('f', 'Wcale'))
+    freq = models.CharField(max_length=1, choices=FREQ, verbose_name="Ile razy wystąpił objaw w ciągu miesiąca")
+
+    class Meta:
+        unique_together = (('lifequality', 'moodsymptom'),)
+        verbose_name = u"Częstot. występ. objawów samopoczucia"
+        verbose_name_plural = u"Częstot. występ. objawów samopoczucia"
+
+
+class HealthSelfOpinion(models.Model):
+    lifequality = models.ForeignKey('LifeQuality')
+    healthselfopinion = models.ForeignKey('records.CategoricalValue', related_name="lifequality_by_healthselfopinion", verbose_name="Samoocena stanu zdrowia", limit_choices_to={'group__name': 'healthselfopinion'})    
+
+    POWER = (('a', 'Szczególnie prawdziwe'), ('b', 'Czasami prawdziwe'), ('c', 'Nie wiem'), ('d', 'Czasami fałszywe'), ('e', 'Szczególnie fałszywe'))
+    state_power = models.CharField(max_length=1, choices=POWER, verbose_name="Prawdziwość stwierdzenia")
+    
+    
+    class Meta:
+        unique_together = (('lifequality', 'healthselfopinion'),)
+        verbose_name = u"Samoocena stanu zdrowia"
+        verbose_name_plural = u"Samoocena stanu zdrowia"
+
 
 
 class EtiologySymptom(models.Model):
