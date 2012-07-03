@@ -513,43 +513,65 @@ class LifeQuality(models.Model):
         verbose_name = u"Jakość życia"
         verbose_name_plural = u"Jakość życia"
 
-    def get_sf36_points(self):
+    #assumption: 1 - a, 2 - b, .... 
+    def _key_translator(self, number):
+        return chr(number-1 +ord('a') )
+
+        
+    def get_q1_points(self):
         health_state = {'a':0, 'b':1, 'c':2, 'd':3, 'e':4}
         health_state_pts = health_state[self.health_state]
+        return {'sum':health_state_pts}
         
+    
+    def get_q2_points(self):
         health_change = {'a':0, 'b':1, 'c':2, 'd':3, 'e':4}
         health_change_pts = health_change[self.health_change]
+        return {'sum':health_change_pts}
     
+    def get_q3_points(self):
+        points={'a':0, 'b':0, 'c':0, 'd':0, 'e':0, 'f':0, 'g':0, 'h':0, 'i':0, 'j':0}
+        activity_limits = {'a':5, 'b':3, 'c':0}
+        for i in self.activitylimit_set.all():
+            key = self._key_translator(i.activitylimit.weight)
+            points[key] = activity_limits[i.limit]
+            
+        points['sum'] = sum(points.values())
+        return points
+        
+    def get_q4_points(self):
+        points = {'a':0, 'b':0, 'c':0, 'd':0}
+        for i in self.healthproblem_set.all():
+            key = self._key_translator(i.healthproblem.weight)
+            points[key]=5
+        points['sum'] = sum(points.values())
+        return points
+        
+    def get_q5_points(self):
+        points = {'a':0, 'b':0, 'c':0}
+        for i in self.emotionalproblem_set.all():
+            key = self._key_translator(i.emotionalproblem.weight)
+            points[key]=5
+        points['sum'] = sum(points.values())
+        return points
+    
+    def get_q6_points(self):
         problem_impact = {'a':0, 'b':1, 'c':2, 'd':3, 'e':4}
         problem_impact_pts = problem_impact[self.problem_impact ]
-    
+        return {'sum':problem_impact_pts}
+        
+    def get_q7_points(self):
         pain_freq = {'a':0, 'b':1, 'c':2, 'd':3, 'e':4, 'f':5}
         pain_freq_pts = pain_freq[self.pain_freq]
+        return {'sum':pain_freq_pts}
     
+    def get_q8_points(self):
         pain_impact = {'a':0, 'b':1, 'c':2, 'd':3, 'e':4}
         pain_impact_pts = pain_impact[self.pain_impact]
-        
-        condition_impact = {'a':4, 'b':3, 'c':2, 'd':1, 'e':0}
-        condition_impact_pts = condition_impact [self.condition_impact]
-                
-        activity_limits = {'a':5, 'b':3, 'c':0}
-        activity_limits_pts = 0
-        for i in self.activitylimit_set.all():
-            activity_limits_pts += activity_limits[i.limit]
-        
-        health_problems = {'1': 5, '2': 5, '3': 5, '4': 5}
-        health_problems_pts = 0
-        for i in self.healthproblem_set.all():
-            health_problems_pts += health_problems[i.healthproblem.key]
-            
-        emotional_problems = {'1': 5, '2': 5, '3': 5}
-        emotional_problems_pts = 0
-        for i in self.emotionalproblem_set.all():
-            emotional_problems_pts += emotional_problems[i.emotionalproblem.key]
-       
-        
-        
-        #mood
+        return {'sum':pain_impact_pts}
+    
+    def get_q9_points(self):
+        points={'a':0, 'b':0, 'c':0, 'd':0, 'e':0, 'f':0, 'g':0, 'h':0, 'i':0}
         mood_symptoms = { 1: {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5},
                           2: {'a': 5, 'b': 4, 'c': 3, 'd': 2, 'e': 1, 'f': 0},
                           3: {'a': 5, 'b': 4, 'c': 3, 'd': 2, 'e': 1, 'f': 0},
@@ -560,44 +582,58 @@ class LifeQuality(models.Model):
                           8: {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5},
                           9: {'a': 5, 'b': 4, 'c': 3, 'd': 2, 'e': 1, 'f': 0}}
            
-        mood_symptoms_pts = 0
         for  i in self.moodsymptom_set.all():
-           key = i.moodsymptom.weight
-           val = i.freq
-           mood_symptoms_pts += mood_symptoms[key][val]
+            weight = i.moodsymptom.weight
+            key = self._key_translator(weight)
+            val = i.freq
+            points[key] = mood_symptoms[weight][val]
+            
+        points['sum'] = sum(points.values())
+        return points
+           
+    
+    def get_q10_points(self):
+        condition_impact = {'a':4, 'b':3, 'c':2, 'd':1, 'e':0}
+        condition_impact_pts = condition_impact [self.condition_impact]
+        return {'sum':condition_impact_pts}
         
-        
-        #healthselfopinion
+    def get_q11_points(self):
+        points={'a':0, 'b':0, 'c':0, 'd':0}
         health_opinion = { 1: {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4},
                            2: {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4},
                            3: {'a': 4, 'b': 3, 'c': 2, 'd': 1, 'e': 0},
                            4: {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4}}
            
-        health_opinion_pts = 0
         for  i in self.healthselfopinion_set.all():
-           key = i.healthselfopinion.weight
-           val = i.state_power
-           health_opinion_pts += health_opinion[key][val]
-        
-        
-       
-        points = {'health_state': health_state_pts, 
-                  'health_change': health_change_pts,
-                  'problem_impact': problem_impact_pts, 
-                  'pain_freq': pain_freq_pts,
-                  'pain_impact': pain_impact_pts, 
-                  'condition_impact': condition_impact_pts,
-                  'activity_limits': activity_limits_pts, 
-                  'health_problems': health_problems_pts,
-                  'emotional_problems': emotional_problems_pts, 
-                  'mood_symptoms': mood_symptoms_pts, 
-                  'health_opinion': health_opinion_pts}
-                  
+            weight = i.healthselfopinion.weight
+            key = self._key_translator(weight)
+            val = i.state_power
+            points[key] = health_opinion[weight][val]
+            
+        points['sum'] = sum(points.values())
         return points
+        
+      
+    def get_sf36_groups(self):
+        points = {}
+        
+        points['PF'] = self.get_q3_points()['sum']
+        points['RP'] = self.get_q4_points()['sum']
+        points['BP'] = self.get_q7_points()['sum'] + self.get_q8_points()['sum']
+        points['GH'] = self.get_q1_points()['sum'] + self.get_q11_points()['sum']
+        q9 = self.get_q9_points()
+        points['VT'] = q9['a'] + q9['e'] + q9['g'] + q9['i']
+        points['SF'] = self.get_q6_points()['sum'] + self.get_q10_points()['sum']
+        points['RE'] = self.get_q5_points()['sum']
+        points['MH'] = q9['b'] + q9['c'] + q9['d'] + q9['f'] + q9['h']
+        points['HT'] = self.get_q2_points()['sum']
+        
+        return points
+        
         
     def get_sf36_points_sum(self):
         try:
-            return sum(self.get_sf36_points().values())
+            return sum(self.get_sf36_groups().values())
         except Exception, error:
             return error
         
