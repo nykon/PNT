@@ -679,8 +679,8 @@ class MoodSymptom(models.Model):
 
     class Meta:
         unique_together = (('lifequality', 'moodsymptom'),)
-        verbose_name = u"Częstot. występ. objawów samopoczucia"
-        verbose_name_plural = u"Częstot. występ. objawów samopoczucia"
+        verbose_name = u"Występ. objawów samopoczucia"
+        verbose_name_plural = u"Występ. objawów samopoczucia"
 
 
 class HealthSelfOpinion(models.Model):
@@ -772,7 +772,145 @@ class Etiology(models.Model):
         verbose_name = u"Etiologia nadciśnienia tętnicznego"
         verbose_name_plural = u"Etiologia nadciśnienia tętnicznego"
 
+        
+class Antropometrics(models.Model):
+    appointment = models.OneToOneField('Appointment', verbose_name="Wizyta")
+    loins_perimeter = models.FloatField(verbose_name="Obwód bioder [cm]")
+    weist_perimeter = models.FloatField(verbose_name="Obwód talii [cm]")
+    height = models.FloatField(verbose_name="Wzrost [w cm]")
+    
+    def __unicode__(self):
+        return u"Data wizyty - %s, pacjent - %s" % (self.appointment.date, self.appointment.patient)
 
+    class Meta:
+        verbose_name = u"Pomiar antropometryczny"
+        verbose_name_plural = u"Pomiary antropometryczne"
+
+class BodyPressure(models.Model):
+    appointment = models.OneToOneField('Appointment', verbose_name="Wizyta")
+    systolic_left = models.FloatField(verbose_name="Ciśnienie skurczowe strona lewa")
+    systolic_right = models.FloatField(verbose_name="Ciśnienie skurczowe strona prawa")
+    diastolic_left = models.FloatField(verbose_name="Ciśnienie rozkurczowe strona lewa")
+    diastolic_right = models.FloatField(verbose_name="Ciśnienie rozkurczowe strona prawa")
+    
+    def __unicode__(self):
+        return u"Data wizyty - %s, pacjent - %s" % (self.appointment.date, self.appointment.patient)
+
+    class Meta:
+        verbose_name = u"Pomiar BP"
+        verbose_name_plural = u"Pomiary BP"
+
+class HeartEcho(models.Model):
+    
+    appointment = models.OneToOneField('Appointment', verbose_name="Wizyta")
+    la_d = models.FloatField(verbose_name="LA D [cm]")
+    lvidd = models.FloatField(verbose_name="LVIDd [cm]")
+    rvdd = models.FloatField(verbose_name="RVDd [cm]")
+    lvpwd = models.FloatField(verbose_name="LVPWd [cm]")
+    ivsd = models.FloatField(verbose_name="IVSd [cm]")
+    asc_ao = models.FloatField(verbose_name="Asc.Ao [cm]")
+    ao_diam_stub = models.FloatField(verbose_name="Ao diam STub[cm]")
+    aoroot = models.FloatField(verbose_name="AoRoot [cm]")
+    lvd_massase = models.FloatField(verbose_name="LVd MassASE [g]")
+    lvd_mi_ase = models.FloatField(verbose_name="LVd MI Ase [g/m^2]")
+    lvd_masspenn = models.FloatField(verbose_name="LVd MassPENN [g]")
+    lvd_mi_penn = models.FloatField(verbose_name="LVd MI Penn [g/m^2]")
+    mitral_valve = models.TextField(verbose_name="Zastawka mitralna")
+    aortal_valve = models.TextField(verbose_name="Zastawka aortalna")
+    tricuspid_valve = models.TextField(verbose_name="Zastawka trójdzielna")
+    ef = models.FloatField(verbose_name="EF [%]")
+    contractility = models.TextField(verbose_name="Kurczliwość")
+    im = models.ForeignKey('records.CategoricalValue', related_name="heart_echo_by_im", verbose_name="IM", limit_choices_to={'group__name': 'heart_echo_level'})
+    ia = models.ForeignKey('records.CategoricalValue', related_name="heart_echo_by_ia", verbose_name="IA", limit_choices_to={'group__name': 'heart_echo_level'})
+    it = models.ForeignKey('records.CategoricalValue', related_name="heart_echo_by_it", verbose_name="IT", limit_choices_to={'group__name': 'heart_echo_level'})
+
+    def __unicode__(self):
+        return u"Data wizyty - %s, pacjent - %s" % (self.appointment.date, self.appointment.patient)
+
+    class Meta:
+        verbose_name = u"Echo serca"
+        verbose_name_plural = u"Echa serca"
+
+    
+class Biochemistry(models.Model):
+    appointment = models.OneToOneField('Appointment', verbose_name="Wizyta")
+    wbc = models.FloatField(verbose_name="WBC [10e9/L]")
+    rbc = models.FloatField(verbose_name="RBC [10e12/L]")
+    hgb = models.FloatField(verbose_name="HGB [mmol/L]")
+    hct = models.FloatField(verbose_name="HCT [L/L]")
+    mvc = models.FloatField(verbose_name="MVC [fL]")
+    plt = models.FloatField(verbose_name="PLT [10e9/L]")
+    Na = models.FloatField(verbose_name="Na [mmol/L]")
+    K = models.FloatField(verbose_name="K [mmol/L]")
+    chol = models.FloatField(verbose_name="CHOL [mmol/L]")
+    ldl = models.FloatField(verbose_name="LDL [mmol/L]")
+    ahdl = models.FloatField(verbose_name="AHDL [mmol/L]")
+    tgl = models.FloatField(verbose_name="TGL [mmol/L]")
+    bun = models.FloatField(verbose_name= "BUN [mmol/L]")
+    ast = models.FloatField(verbose_name="AST [U/L]")
+    alt = models.FloatField(verbose_name="ALT [U/L]")
+    gluc = models.FloatField(verbose_name="GLUC [mmol/L]")
+    urca = models.FloatField(verbose_name="URCA [mg/L]")
+    rcrp = models.FloatField(verbose_name="RCRP [mg/L]")
+    crea = models.FloatField(verbose_name="CREA [umol/L]")
+    
+    
+    def __unicode__(self):
+        return u"Data wizyty - %s, pacjent - %s" % (self.appointment.date, self.appointment.patient)
+
+    class Meta:
+        verbose_name = u"Badanie laboratoryjne"
+        verbose_name_plural = u"Badania laboratoryjne"
+    
+
+class ABI(models.Model):
+    appointment = models.OneToOneField('Appointment', verbose_name="Wizyta")
+    left_side = models.FloatField(verbose_name="Strona lewa")
+    right_side = models.FloatField(verbose_name="Strona prawa")
+    
+    def __unicode__(self):
+        return u"Data wizyty - %s, pacjent - %s" % (self.appointment.date, self.appointment.patient)
+
+    class Meta:
+        verbose_name = u"ABI"
+        verbose_name_plural = u"ABI"
+
+class CartoidUSG(models.Model):
+    appointment = models.OneToOneField('Appointment', verbose_name="Wizyta")
+    imt_left = models.FloatField(verbose_name="IMT strona lewa [mm]")
+    imt_right = models.FloatField(verbose_name="IMT strona prawa [mm]")
+    plaques = models.BooleanField(verbose_name="Blaszki miażdzycowe [mm]")
+    notes = models.TextField(verbose_name="Notatki")
+    
+    def __unicode__(self):
+        return u"Data wizyty - %s, pacjent - %s" % (self.appointment.date, self.appointment.patient)
+
+    class Meta:
+        verbose_name = u"USG tetnic szyjnych"
+        verbose_name_plural = u"USG tetnic szyjnych"
+
+class EKG(models.Model):
+    appointment = models.OneToOneField('Appointment', verbose_name="Wizyta")
+    hr = models.FloatField(verbose_name="HR [/min]")
+    sl_factor = models.FloatField(verbose_name="Wskaźnik Sokołowa-Lyona [mm]")
+    cornell_factor = models.FloatField(verbose_name="Wskaźnik Cornell [mm]")
+    notes = models.TextField(verbose_name="Notatki")
+    
+    def __unicode__(self):
+        return u"Data wizyty - %s, pacjent - %s" % (self.appointment.date, self.appointment.patient)
+
+    class Meta:
+        verbose_name = u"EKG"
+        verbose_name_plural = u"EKG"
+
+    
+
+    
+    
+    
+    
+    
+    
 #class Antropometrics(models.Model):
 #    pass
 
