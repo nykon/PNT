@@ -820,9 +820,9 @@ class HeartEcho(models.Model):
     tricuspid_valve = models.TextField(verbose_name="Zastawka trójdzielna")
     ef = models.FloatField(verbose_name="EF [%]")
     contractility = models.TextField(verbose_name="Kurczliwość")
-    im = models.ForeignKey('records.CategoricalValue', related_name="heart_echo_by_im", verbose_name="IM", limit_choices_to={'group__name': 'heart_echo_level'})
-    ia = models.ForeignKey('records.CategoricalValue', related_name="heart_echo_by_ia", verbose_name="IA", limit_choices_to={'group__name': 'heart_echo_level'})
-    it = models.ForeignKey('records.CategoricalValue', related_name="heart_echo_by_it", verbose_name="IT", limit_choices_to={'group__name': 'heart_echo_level'})
+    im = models.ForeignKey('records.CategoricalValue', related_name="heart_echo_by_im", verbose_name="IM", limit_choices_to={'group__name': 'im'})
+    ia = models.ForeignKey('records.CategoricalValue', related_name="heart_echo_by_ia", verbose_name="IA", limit_choices_to={'group__name': 'ia'})
+    it = models.ForeignKey('records.CategoricalValue', related_name="heart_echo_by_it", verbose_name="IT", limit_choices_to={'group__name': 'it'})
 
     def __unicode__(self):
         return u"Data wizyty - %s, pacjent - %s" % (self.appointment.date, self.appointment.patient)
