@@ -780,7 +780,7 @@ class Antropometrics(models.Model):
     height = models.FloatField(verbose_name="Wzrost [w cm]")
     
     def __unicode__(self):
-        return u"Data wizyty - %s, pacjent - %s" % (self.appointment.date, self.appointment.patient)
+        return u"Pomiar antropometryczny z dnia %s, %s" % (self.appointment.date, self.appointment.patient)
 
     class Meta:
         verbose_name = u"Pomiar antropometryczny"
@@ -794,7 +794,7 @@ class BodyPressure(models.Model):
     diastolic_right = models.FloatField(verbose_name="Ciśnienie rozkurczowe strona prawa")
     
     def __unicode__(self):
-        return u"Data wizyty - %s, pacjent - %s" % (self.appointment.date, self.appointment.patient)
+        return u"Pomiar BP z dnia - %s, %s" % (self.appointment.date, self.appointment.patient)
 
     class Meta:
         verbose_name = u"Pomiar BP"
@@ -825,7 +825,7 @@ class HeartEcho(models.Model):
     it = models.ForeignKey('records.CategoricalValue', related_name="heart_echo_by_it", verbose_name="IT", limit_choices_to={'group__name': 'it'})
 
     def __unicode__(self):
-        return u"Data wizyty - %s, pacjent - %s" % (self.appointment.date, self.appointment.patient)
+        return u"Echo serca z dnia - %s, %s" % (self.appointment.date, self.appointment.patient)
 
     class Meta:
         verbose_name = u"Echo serca"
@@ -856,7 +856,7 @@ class Biochemistry(models.Model):
     
     
     def __unicode__(self):
-        return u"Data wizyty - %s, pacjent - %s" % (self.appointment.date, self.appointment.patient)
+        return u"Badania laboratoryjne z dnia %s, %s" % (self.appointment.date, self.appointment.patient)
 
     class Meta:
         verbose_name = u"Badanie laboratoryjne"
@@ -869,7 +869,7 @@ class ABI(models.Model):
     right_side = models.FloatField(verbose_name="Strona prawa")
     
     def __unicode__(self):
-        return u"Data wizyty - %s, pacjent - %s" % (self.appointment.date, self.appointment.patient)
+        return u"Pomiar ABI z dnia %s, %s" % (self.appointment.date, self.appointment.patient)
 
     class Meta:
         verbose_name = u"ABI"
@@ -883,7 +883,7 @@ class CartoidUSG(models.Model):
     notes = models.TextField(verbose_name="Notatki")
     
     def __unicode__(self):
-        return u"Data wizyty - %s, pacjent - %s" % (self.appointment.date, self.appointment.patient)
+        return u"USG tętnic szyjnych z dnia %s, %s" % (self.appointment.date, self.appointment.patient)
 
     class Meta:
         verbose_name = u"USG tetnic szyjnych"
@@ -897,7 +897,7 @@ class EKG(models.Model):
     notes = models.TextField(verbose_name="Notatki")
     
     def __unicode__(self):
-        return u"Data wizyty - %s, pacjent - %s" % (self.appointment.date, self.appointment.patient)
+        return u"Pomiar EKG z dnia %s, %s" % (self.appointment.date, self.appointment.patient)
 
     class Meta:
         verbose_name = u"EKG"
